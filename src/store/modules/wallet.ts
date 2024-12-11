@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { combine, createJSONStorage, persist } from 'zustand/middleware'
 
-import { generatePrivateKey } from '@/api/modules/aptos'
+import { generateDecryptionKey, generatePrivateKey } from '@/api/modules/aptos'
 import { zustandSecureStorage } from '@/store/helpers'
 
 const useWalletStore = create(
@@ -9,6 +9,7 @@ const useWalletStore = create(
     combine(
       {
         privateKey: '',
+        decryptionKey: '',
 
         _hasHydrated: false,
       },
@@ -18,9 +19,8 @@ const useWalletStore = create(
             _hasHydrated: value,
           })
         },
-        setPrivateKey: (value: string): void => {
-          console.log(value)
-          set({ privateKey: value })
+        setWalletKeys: (args: { privateKey: string; decryptionKey: string }): void => {
+          set({ privateKey: args.privateKey, decryptionKey: args.decryptionKey })
         },
       }),
     ),
@@ -33,28 +33,31 @@ const useWalletStore = create(
         state?.setHasHydrated(true)
       },
 
-      partialize: state => ({ privateKey: state.privateKey }),
+      partialize: state => ({ privateKey: state.privateKey, decryptionKey: state.decryptionKey }),
     },
   ),
 )
 
-const useGeneratePrivateKey = () => {
+const useGenerateWalletKeys = () => {
   return async () => {
-    return generatePrivateKey()
+    return { privateKey: generatePrivateKey(), decryptionKey: generateDecryptionKey() }
   }
 }
 
 const useDeletePrivateKey = () => {
-  const setPrivateKey = useWalletStore(state => state.setPrivateKey)
+  const setWalletKeys = useWalletStore(state => state.setWalletKeys)
 
   return () => {
-    return setPrivateKey('')
+    return setWalletKeys({
+      privateKey: '',
+      decryptionKey: '',
+    })
   }
 }
 
 export const walletStore = {
   useWalletStore,
 
-  useGeneratePrivateKey: useGeneratePrivateKey,
+  useGenerateWalletKeys: useGenerateWalletKeys,
   useDeletePrivateKey,
 }

@@ -3,10 +3,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import axios from 'axios'
 import type { PropsWithChildren } from 'react'
 
-import { Config } from '@/config'
-
 export const apiClient = axios.create({
-  baseURL: Config.RELAYER_API_URL,
+  baseURL: '', // TODO: implement me
   headers: {
     'Content-Type': 'application/json',
   },
