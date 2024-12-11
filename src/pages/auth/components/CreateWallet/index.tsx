@@ -21,8 +21,7 @@ import {
 type Props = ViewProps & AuthStackScreenProps<'CreateWallet'>
 
 export default function CreateWallet({ route }: Props) {
-  const generateWalletKeys = walletStore.useGenerateWalletKeys()
-  const setWalletKeys = walletStore.useWalletStore(state => state.setWalletKeys)
+  const addPrivateKey = walletStore.useWalletStore(state => state.addPrivateKey)
   const login = authStore.useLogin()
 
   const isImporting = useMemo(() => {
@@ -39,29 +38,24 @@ export default function CreateWallet({ route }: Props) {
     useForm(
       {
         privateKey: '',
-        decryptionKey: '',
       },
       yup =>
         yup.object().shape({
           privateKey: yup.string().required(),
-          decryptionKey: yup.string().required(),
         }),
     )
 
   const submit = useCallback(async () => {
     disableForm()
     try {
-      setWalletKeys({
-        privateKey: formState.privateKey,
-        decryptionKey: formState.decryptionKey,
-      })
+      addPrivateKey(formState.privateKey)
       await login(formState.privateKey)
     } catch (error) {
       // TODO: network inspector
       ErrorHandler.process(error)
     }
     enableForm()
-  }, [disableForm, enableForm, formState, login, setWalletKeys])
+  }, [addPrivateKey, disableForm, enableForm, formState.privateKey, login])
 
   const pasteFromClipboard = useCallback(
     async (fieldName: keyof typeof formState) => {
@@ -78,10 +72,9 @@ export default function CreateWallet({ route }: Props) {
         return true
       }
 
-      const { privateKey, decryptionKey } = await generateWalletKeys()
+      const privateKey = walletStore.generatePrivateKey()
 
       setValue('privateKey', privateKey)
-      setValue('decryptionKey', decryptionKey)
 
       return true
     },
@@ -131,23 +124,6 @@ export default function CreateWallet({ route }: Props) {
                   title='Paste From Clipboard'
                   onPress={() => pasteFromClipboard('privateKey')}
                 />
-
-                <ControlledUiTextField
-                  name={'decryptionKey'}
-                  placeholder={'Your decryption key'}
-                  control={control}
-                  disabled={isFormDisabled}
-                />
-
-                <UiButton
-                  variant='text'
-                  color='text'
-                  leadingIconProps={{
-                    customIcon: isCopied ? 'checkIcon' : 'copySimpleIcon',
-                  }}
-                  title='Paste From Clipboard'
-                  onPress={() => pasteFromClipboard('decryptionKey')}
-                />
               </>
             ) : (
               <>
@@ -168,25 +144,6 @@ export default function CreateWallet({ route }: Props) {
                   }}
                   title='Copy to Clipboard'
                   onPress={() => copy(formState.privateKey)}
-                />
-
-                <View className='flex gap-2'>
-                  <Text className='pl-4 text-textPrimary typography-body3'>Decryption Key:</Text>
-                  <UiCard className='bg-backgroundPrimary'>
-                    <Text className='text-textPrimary typography-body3'>
-                      {formState.decryptionKey}
-                    </Text>
-                  </UiCard>
-                </View>
-
-                <UiButton
-                  variant='text'
-                  color='text'
-                  leadingIconProps={{
-                    customIcon: isCopied ? 'checkIcon' : 'copySimpleIcon',
-                  }}
-                  title='Copy to Clipboard'
-                  onPress={() => copy(formState.decryptionKey)}
                 />
               </>
             )}

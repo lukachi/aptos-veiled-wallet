@@ -80,12 +80,12 @@ const useLogin = () => {
 const useLogout = () => {
   const logout = useAuthStore(state => state.logout)
 
-  const deletePrivateKey = walletStore.useDeletePrivateKey()
+  const clearStoredKeys = walletStore.useWalletStore(state => state.clearStoredKeys)
   const resetLocalAuthStore = localAuthStore.useLocalAuthStore(state => state.resetStore)
 
   return async () => {
     logout()
-    await Promise.all([deletePrivateKey(), resetLocalAuthStore()])
+    await Promise.all([clearStoredKeys(), resetLocalAuthStore()])
   }
 }
 

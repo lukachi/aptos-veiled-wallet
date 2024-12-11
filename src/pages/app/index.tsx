@@ -1,6 +1,7 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 
+import { VeiledCoinContextProvider } from '@/pages/app/VeiledCoinContextProvider'
 import type {
   AppStackParamsList,
   AppStackScreenProps,
@@ -60,14 +61,16 @@ function AppTabs({}: AppStackScreenProps<'Tabs'>) {
 
 export default function App({}: RootStackScreenProps<'App'>) {
   return (
-    <Stack.Navigator>
-      <Stack.Screen
-        name={'Tabs'}
-        component={AppTabs}
-        options={{
-          headerShown: false,
-        }}
-      />
-    </Stack.Navigator>
+    <VeiledCoinContextProvider>
+      <Stack.Navigator>
+        <Stack.Screen
+          name={'Tabs'}
+          component={AppTabs}
+          options={{
+            headerShown: false,
+          }}
+        />
+      </Stack.Navigator>
+    </VeiledCoinContextProvider>
   )
 }
