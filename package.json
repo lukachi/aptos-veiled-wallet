@@ -42,7 +42,7 @@
     "preset": "jest-expo"
   },
   "dependencies": {
-    "@aptos-labs/ts-sdk": "*",
+    "@aptos-labs/ts-sdk": "^1.33.1",
     "@dev-plugins/react-navigation": "^0.0.6",
     "@dev-plugins/react-query": "^0.0.6",
     "@distributedlab/tools": "^1.0.0-rc.16",
@@ -171,8 +171,5 @@
     "typescript": "~5.3.3"
   },
   "private": true,
-  "packageManager": "yarn@4.5.0",
-  "resolutions": {
-    "@aptos-labs/ts-sdk": "portal:/Users/lukachisama/Documents/APTOS/aptos-ts-sdk"
-  }
+  "packageManager": "yarn@4.5.0"
 }

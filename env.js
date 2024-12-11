@@ -85,6 +85,7 @@ const client = z.object({
   VERSION: z.string(),
 
   // ADD YOUR CLIENT ENV VARS HERE
+  DEFAULT_VEILED_TOKEN_ADDRESS: z.string(),
 })
 
 const buildTime = z.object({
@@ -106,7 +107,7 @@ const _clientEnv = {
   VERSION: packageJSON.version,
 
   // ADD YOUR ENV VARS HERE TOO
-  SOME_SECRET_KEY: getSecretWithSuffix('SOME_SECRET_KEY'),
+  DEFAULT_VEILED_TOKEN_ADDRESS: process.env.DEFAULT_VEILED_TOKEN_ADDRESS,
 }
 
 /**
@@ -116,7 +117,7 @@ const _buildTimeEnv = {
   EXPO_ACCOUNT_OWNER,
   EAS_PROJECT_ID,
   // ADD YOUR ENV VARS HERE TOO
-  // SECRET_KEY: process.env.EXPO_PUBLIC_SECRET_KEY,
+  SOME_SECRET_KEY: getSecretWithSuffix('SOME_SECRET_KEY'),
 }
 
 /**

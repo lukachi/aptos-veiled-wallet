@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { combine, createJSONStorage, persist } from 'zustand/middleware'
 
-import { authorize, refresh } from '@/api/modules/auth'
+import { authorize, refresh } from '@/api/modules/aptos'
 import { sleep } from '@/helpers'
 import { zustandSecureStorage } from '@/store/helpers'
 import { localAuthStore } from '@/store/modules/local-auth'
@@ -63,17 +63,17 @@ const useAuthStore = create(
 const useIsAuthorized = () => {
   const accessToken = useAuthStore(state => state.accessToken)
 
-  return accessToken !== ''
+  return !!accessToken
 }
 
 const useLogin = () => {
   const setTokens = useAuthStore(state => state.setTokens)
 
-  // TODO: change to state?
   return async (privateKey: string) => {
-    const { data: authTokens } = await authorize(privateKey) // FIXME
+    // FIXME: implement
+    await authorize()
 
-    setTokens(authTokens.access_token.token, authTokens.refresh_token.token)
+    setTokens(privateKey, 'authTokens.refresh_token.token')
   }
 }
 

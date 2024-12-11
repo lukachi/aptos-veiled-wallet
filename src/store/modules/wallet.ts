@@ -1,7 +1,7 @@
-import { Buffer } from 'buffer'
 import { create } from 'zustand'
 import { combine, createJSONStorage, persist } from 'zustand/middleware'
 
+import { generatePrivateKey } from '@/api/modules/aptos'
 import { zustandSecureStorage } from '@/store/helpers'
 
 const useWalletStore = create(
@@ -19,6 +19,7 @@ const useWalletStore = create(
           })
         },
         setPrivateKey: (value: string): void => {
+          console.log(value)
           set({ privateKey: value })
         },
       }),
@@ -39,9 +40,7 @@ const useWalletStore = create(
 
 const useGeneratePrivateKey = () => {
   return async () => {
-    const pkBytes = new Uint8Array([]) // TODO: await generatePrivateKey()
-
-    return Buffer.from(pkBytes).toString('hex')
+    return generatePrivateKey()
   }
 }
 

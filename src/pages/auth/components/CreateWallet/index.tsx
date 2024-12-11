@@ -42,13 +42,12 @@ export default function CreateWallet({ route }: Props) {
       },
       yup =>
         yup.object().shape({
-          privateKey: yup.string().test('is-valid-pk', 'Invalid Private Key', value => {
-            return value?.length === 64 || value?.length === 32
-          }),
+          privateKey: yup.string().required(),
         }),
     )
 
   const submit = useCallback(async () => {
+    console.log('submit')
     disableForm()
     try {
       setPrivateKey(formState.privateKey)
