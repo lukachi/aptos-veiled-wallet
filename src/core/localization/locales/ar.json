@@ -1,0 +1,110 @@
+{
+  "auth": {
+    "intro": {
+      "next-btn": "Create wallet",
+      "step-1": {
+        "subtitle": "Lorem ipsum dolor sit amet concestetur!",
+        "title": "Welcome to the app"
+      },
+      "step-2": {
+        "subtitle": "Lorem ipsum dolor sit amet concestetur!",
+        "title": "Second intro step"
+      },
+      "step-3": {
+        "subtitle": "Lorem ipsum dolor sit amet concestetur!",
+        "title": "Third intro step"
+      },
+      "step-4": {
+        "subtitle": "Lorem ipsum dolor sit amet concestetur!",
+        "title": "Fourth intro step"
+      }
+    }
+  },
+  "enable-biometrics": {
+    "enable-btn": "Enable",
+    "skip-btn": "Skip",
+    "title": "Enable Biometric Auth"
+  },
+  "enable-passcode": {
+    "enable-btn": "Enable",
+    "skip-btn": "Skip",
+    "title": "Enable Passcode"
+  },
+  "errors": {
+    "default": "Something went wrong"
+  },
+  "lockscreen": {
+    "attempts-left": "Attempts Left: {{attemptsLeft}}",
+    "default-title": "Enter passcode",
+    "forgot-btn": "Forgot password",
+    "locked-permanently": "Account locked permanently, until logout",
+    "locked-temp": "Account locked",
+    "logout-btn": "Logout"
+  },
+  "notifications": {
+    "default-message-default": "Just a message",
+    "default-message-error": "Something went wrong",
+    "default-message-info": "Something is happening. Just want you to know that",
+    "default-message-success": "Action successful",
+    "default-message-warning": "Something you are doing is not recommended",
+    "default-title-default": "Just a message",
+    "default-title-error": "Error",
+    "default-title-info": "Info",
+    "default-title-success": "Success",
+    "default-title-warning": "Warning"
+  },
+  "plurals": {
+    "key_few": "few",
+    "key_many": "many",
+    "key_one": "singular",
+    "key_other": "other",
+    "key_two": "two",
+    "key_zero": "zero"
+  },
+  "set-passcode": {
+    "submit-btn": "Set",
+    "title": "Set Passcode"
+  },
+  "sign-in": {
+    "divider": "or",
+    "email-lbl": "Email",
+    "email-ph": "Enter your email",
+    "login-tip": "Sign up",
+    "oauth-btn": "Log in with Google",
+    "password-lbl": "Password",
+    "password-ph": "Enter your password",
+    "submit-btn": "Log in",
+    "tip": "Don't have an account?",
+    "title": "Welcome 👋"
+  },
+  "sign-up": {
+    "divider": "or",
+    "email-lbl": "Email",
+    "email-ph": "Enter your email",
+    "login-tip": "Log in",
+    "name-lbl": "Name",
+    "name-ph": "Enter your name",
+    "oauth-btn": "Log in with Google",
+    "password-lbl": "Password",
+    "password-ph": "Enter your password",
+    "submit-btn": "Sign up",
+    "tip": "Already have an account?",
+    "title": "Create Your Account"
+  },
+  "tabs": {
+    "one": "TAB one",
+    "two": "TAB two",
+    "typography": "Typography"
+  },
+  "ui-preferences": {
+    "primary": "Primary",
+    "quaternary": "Quaternary",
+    "secondary": "Secondary",
+    "tertiary": "Tertiary"
+  },
+  "validations": {
+    "field-error_maxLength": "This field must contain maximum {{maxLength}} symbols",
+    "field-error_minLength": "This field must contain minimum {{minLength}} symbols",
+    "field-error_required": "Please fill out this field"
+  }
+}

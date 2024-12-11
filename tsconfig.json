@@ -1,0 +1,26 @@
+{
+  "extends": "./tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "tsBuildInfoFile": "node_modules/.cache/tsbuildinfo.json",
+    "resolveJsonModule": true,
+    "paths": {
+      "@/*": ["./src/*"],
+      "@assets/*": ["./assets/*"],
+      "@modules/*": ["./modules/*"],
+      "@env": ["./src/core/env.js"]
+    },
+    "types": ["lodash"]
+  },
+  "include": ["**/*.ts", "**/*.tsx", "declarations.d.ts", "nativewind-env.d.ts"],
+  "exclude": [
+    "node_modules",
+    "babel.config.js",
+    "metro.config.js",
+    "docs",
+    "cli",
+    "android",
+    "ios",
+    "lint-staged.config.js"
+  ]
+}
