@@ -1,12 +1,19 @@
 import type { Account } from '@aptos-labs/ts-sdk'
 import { TwistedEd25519PrivateKey } from '@aptos-labs/ts-sdk'
 import type { PropsWithChildren } from 'react'
-import { useState } from 'react'
 import { useCallback } from 'react'
 import { createContext, useContext, useMemo } from 'react'
 
-import { accountFromPrivateKey, registerVeiledBalance } from '@/api/modules/aptos'
+import {
+  accountFromPrivateKey,
+  getIsAccountRegisteredWithToken,
+  getIsBalanceFrozen,
+  getIsBalanceNormalized,
+  getVeiledBalances,
+  registerVeiledBalance,
+} from '@/api/modules/aptos'
 import { Config } from '@/config'
+import { useLoading } from '@/hooks'
 import type { TxHistoryItem } from '@/store'
 import { type TokenBaseInfo, walletStore } from '@/store'
 
@@ -18,6 +25,8 @@ type AccountDecryptionKeyStatus = {
   pendingAmount: string
   actualAmount: string
 }
+
+type DecryptionKeyStatusLoadingState = 'idle' | 'loading' | 'success' | 'error'
 
 type VeiledCoinContextType = {
   accountsList: Account[]
@@ -41,7 +50,7 @@ type VeiledCoinContextType = {
   setAccountDecryptionKey: (decryptionKeyHex?: string) => string
   registerAccountEncryptionKey: (encryptionKeyHex: string, tokenAddress: string) => Promise<void>
 
-  decryptionKeyStatusLoadingState: 'idle' | 'loading' | 'success' | 'error' // FIXME: implement
+  decryptionKeyStatusLoadingState: DecryptionKeyStatusLoadingState
   loadSelectedDecryptionKeyState: () => Promise<void>
 }
 
@@ -242,17 +251,45 @@ const useSelectedAccountDecryptionKeyStatus = (
   decryptionKeyHex: string | undefined,
   tokenAddress: string | undefined,
 ) => {
-  const [decryptionKeyStatusLoadingState, setDecryptionKeyStatusLoadingState] = useState<
-    'idle' | 'loading' | 'success' | 'error'
-  >('idle')
-  const [selectedAccountDecryptionKeyStatus, setSelectedAccountDecryptionKeyStatus] = useState({
-    isFrozen: false,
-    isNormalized: true,
-    isRegistered: true,
+  const selectedPrivateKeyHex = walletStore.useSelectedPrivateKeyHex()
 
-    pendingAmount: '0',
-    actualAmount: '0',
+  const { data, isLoading, isLoadingError, isEmpty } = useLoading(undefined, async () => {
+    if (!decryptionKeyHex) return undefined
+
+    const [{ pending, actual }, isRegistered, isNormalized, isFrozen] = await Promise.all([
+      getVeiledBalances(selectedPrivateKeyHex, decryptionKeyHex, tokenAddress),
+      getIsAccountRegisteredWithToken(selectedPrivateKeyHex, tokenAddress),
+      getIsBalanceNormalized(selectedPrivateKeyHex, tokenAddress),
+      getIsBalanceFrozen(selectedPrivateKeyHex, tokenAddress),
+    ])
+
+    return {
+      pending,
+      actual,
+      isRegistered,
+      isNormalized,
+      isFrozen,
+    }
   })
+
+  const selectedAccountDecryptionKeyStatus = {
+    isFrozen: data?.isFrozen ?? false,
+    isNormalized: data?.isNormalized ?? false,
+    isRegistered: data?.isRegistered ?? false,
+
+    pendingAmount: data?.pending?.amount?.toString() ?? '0',
+    actualAmount: data?.actual?.amount?.toString() ?? '0',
+  }
+
+  const decryptionKeyStatusLoadingState = useMemo((): DecryptionKeyStatusLoadingState => {
+    if (isLoading) return 'loading'
+
+    if (isLoadingError) return 'error'
+
+    if (isEmpty) return 'idle'
+
+    return 'success'
+  }, [isEmpty, isLoading, isLoadingError])
 
   return {
     selectedAccountDecryptionKeyStatus,
@@ -302,8 +339,8 @@ export const VeiledCoinContextProvider = ({ children }: PropsWithChildren) => {
         setAccountDecryptionKey,
         registerAccountEncryptionKey,
 
-        decryptionKeyStatusLoadingState,
         selectedAccountDecryptionKeyStatus,
+        decryptionKeyStatusLoadingState,
         loadSelectedDecryptionKeyState,
       }}
     >

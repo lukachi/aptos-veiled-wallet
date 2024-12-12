@@ -244,10 +244,10 @@ export const getIsBalanceNormalized = async (
 }
 
 export const getIsBalanceFrozen = async (
-  privateKey: string,
+  privateKeyHex: string,
   tokenAddress = Config.DEFAULT_TOKEN.address,
 ) => {
-  const account = accountFromPrivateKey(privateKey)
+  const account = accountFromPrivateKey(privateKeyHex)
 
   const isFrozen = await aptos.veiledCoin.isBalanceFrozen({
     accountAddress: account.accountAddress,
@@ -257,8 +257,8 @@ export const getIsBalanceFrozen = async (
   return isFrozen
 }
 
-export const getAptBalance = async (privateKey: string) => {
-  const account = accountFromPrivateKey(privateKey)
+export const getAptBalance = async (privateKeyHex: string) => {
+  const account = accountFromPrivateKey(privateKeyHex)
 
   const aptBalance = await aptos.getAccountAPTAmount({
     accountAddress: account.accountAddress,
@@ -268,11 +268,11 @@ export const getAptBalance = async (privateKey: string) => {
 }
 
 export const getVeiledBalances = async (
-  privateKey: string,
+  privateKeyHex: string,
   decryptionKeyHex: string,
   tokenAddress = Config.DEFAULT_TOKEN.address,
 ) => {
-  const account = accountFromPrivateKey(privateKey)
+  const account = accountFromPrivateKey(privateKeyHex)
   const decryptionKey = new TwistedEd25519PrivateKey(decryptionKeyHex)
 
   const { pending, actual } = await aptos.veiledCoin.getBalance({

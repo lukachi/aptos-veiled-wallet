@@ -6,6 +6,8 @@ import { cn } from '@/theme'
 import { UiCard, UiIcon } from '@/ui'
 
 type Props = {
+  encryptionKey: string
+
   pendingAmount: string
   actualAmount: string
 
@@ -15,6 +17,7 @@ type Props = {
 } & ViewProps
 
 export default function VBCard({
+  encryptionKey,
   pendingAmount,
   actualAmount,
   isNormalized,
@@ -74,11 +77,7 @@ export default function VBCard({
           </Text>
         </View>
 
-        <CopyField
-          label='Encryption Key'
-          text='0x12345678900x12345678900x12345678900x12345678900x1234567890'
-          className=''
-        />
+        <CopyField label='Encryption Key' text={encryptionKey} className='' />
       </UiCard>
     </View>
   )

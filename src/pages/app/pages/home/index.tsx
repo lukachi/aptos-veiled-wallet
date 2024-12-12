@@ -25,13 +25,15 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
   const offset = useBottomBarOffset()
   const appPaddings = useAppPaddings()
 
-  const { selectedAccountDecryptionKeyHex, txHistory } = useVeiledCoinContext()
+  const {
+    selectedAccountDecryptionKeyStatus,
+    selectedAccountEncryptionKeyHex,
+    selectedAccountDecryptionKeyHex,
+    txHistory,
+  } = useVeiledCoinContext()
 
-  const isActionsDisabled = !selectedAccountDecryptionKeyHex
-
-  const isNormalized = true
-  const isFrozen = false
-  const isRegistered = false
+  const isActionsDisabled =
+    !selectedAccountDecryptionKeyHex || !selectedAccountDecryptionKeyStatus.isRegistered
 
   const tryUnfreeze = useCallback(async () => {}, [])
   const tryRegister = useCallback(async () => {}, [])
@@ -45,14 +47,15 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
           paddingTop: insets.top,
         }}
       >
-        {selectedAccountDecryptionKeyHex ? (
+        {selectedAccountDecryptionKeyHex && selectedAccountEncryptionKeyHex ? (
           <VBCard
             className='flex gap-4'
-            pendingAmount={'15'}
-            actualAmount={'250'}
-            isNormalized={isNormalized}
-            isFrozen={isFrozen}
-            isRegistered={isRegistered}
+            encryptionKey={selectedAccountEncryptionKeyHex}
+            pendingAmount={selectedAccountDecryptionKeyStatus.pendingAmount}
+            actualAmount={selectedAccountDecryptionKeyStatus.actualAmount}
+            isNormalized={selectedAccountDecryptionKeyStatus.isNormalized}
+            isFrozen={selectedAccountDecryptionKeyStatus.isFrozen}
+            isRegistered={selectedAccountDecryptionKeyStatus.isRegistered}
           />
         ) : (
           <View
@@ -110,7 +113,7 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
                     Don't forget
                   </Text>
 
-                  {!isRegistered && (
+                  {!selectedAccountDecryptionKeyStatus.isRegistered ? (
                     <ActionCard
                       title={'Register Balance'}
                       desc={'Lorem ipsum dolor sit amet concestetur! Lorem ipsum dolor sit amet!'}
@@ -124,38 +127,44 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
                       }
                       onPress={tryRegister}
                     />
-                  )}
-
-                  {isFrozen && (
-                    <ActionCard
-                      title={'Unfreeze Balance'}
-                      desc={'Lorem ipsum dolor sit amet concestetur! Lorem ipsum dolor sit amet!'}
-                      leadingContent={
-                        <UiIcon
-                          libIcon={'FontAwesome'}
-                          name={'snowflake-o'}
-                          size={32}
-                          className={'self-center text-textPrimary'}
+                  ) : (
+                    <>
+                      {selectedAccountDecryptionKeyStatus.isFrozen && (
+                        <ActionCard
+                          title={'Unfreeze Balance'}
+                          desc={
+                            'Lorem ipsum dolor sit amet concestetur! Lorem ipsum dolor sit amet!'
+                          }
+                          leadingContent={
+                            <UiIcon
+                              libIcon={'FontAwesome'}
+                              name={'snowflake-o'}
+                              size={32}
+                              className={'self-center text-textPrimary'}
+                            />
+                          }
+                          onPress={tryUnfreeze}
                         />
-                      }
-                      onPress={tryUnfreeze}
-                    />
-                  )}
+                      )}
 
-                  {!isNormalized && (
-                    <ActionCard
-                      title={'Normalize Balance'}
-                      desc={'Lorem ipsum dolor sit amet concestetur! Lorem ipsum dolor sit amet!'}
-                      leadingContent={
-                        <UiIcon
-                          libIcon={'FontAwesome'}
-                          name={'exclamation-triangle'}
-                          size={32}
-                          className={'self-center text-textPrimary'}
+                      {!selectedAccountDecryptionKeyStatus.isNormalized && (
+                        <ActionCard
+                          title={'Normalize Balance'}
+                          desc={
+                            'Lorem ipsum dolor sit amet concestetur! Lorem ipsum dolor sit amet!'
+                          }
+                          leadingContent={
+                            <UiIcon
+                              libIcon={'FontAwesome'}
+                              name={'exclamation-triangle'}
+                              size={32}
+                              className={'self-center text-textPrimary'}
+                            />
+                          }
+                          onPress={tryNormalize}
                         />
-                      }
-                      onPress={tryNormalize}
-                    />
+                      )}
+                    </>
                   )}
                 </View>
 
@@ -234,25 +243,17 @@ function CreateDecryptionKeyView() {
 
   const [importedDecryptionKey, setImportedDecryptionKey] = useState('')
 
-  const { setAccountDecryptionKey, registerAccountEncryptionKey, selectedTokenAddress } =
-    useVeiledCoinContext()
+  const { setAccountDecryptionKey } = useVeiledCoinContext()
 
   const { ref, present } = useUiBottomSheet()
 
   const tryImport = useCallback(async () => {
     try {
-      const newDecryptionKeyHex = setAccountDecryptionKey(importedDecryptionKey)
-
-      await registerAccountEncryptionKey(newDecryptionKeyHex, selectedTokenAddress)
+      setAccountDecryptionKey(importedDecryptionKey)
     } catch (error) {
       ErrorHandler.process(error)
     }
-  }, [
-    importedDecryptionKey,
-    registerAccountEncryptionKey,
-    selectedTokenAddress,
-    setAccountDecryptionKey,
-  ])
+  }, [importedDecryptionKey, setAccountDecryptionKey])
 
   return (
     <UiCard className='flex items-center'>
