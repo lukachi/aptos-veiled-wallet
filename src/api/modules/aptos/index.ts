@@ -178,7 +178,7 @@ export const registerVeiledBalance = async (
 export const normalizeVeiledBalance = async (
   privateKey: string,
   decryptionKeyHex: string,
-  amountEncrypted: TwistedElGamalCiphertext[],
+  encryptedPendingBalance: TwistedElGamalCiphertext[],
   amount: bigint,
   tokenAddress = Config.DEFAULT_TOKEN.address,
 ) => {
@@ -187,7 +187,7 @@ export const normalizeVeiledBalance = async (
   const normalizeTx = await aptos.veiledCoin.normalizeUserBalance({
     tokenAddress,
     decryptionKey: new TwistedEd25519PrivateKey(decryptionKeyHex),
-    unnormilizedEncryptedBalance: amountEncrypted,
+    unnormilizedEncryptedBalance: encryptedPendingBalance,
     balanceAmount: amount,
 
     sender: account.accountAddress,

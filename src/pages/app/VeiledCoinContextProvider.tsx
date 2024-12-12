@@ -10,6 +10,7 @@ import {
   getIsBalanceFrozen,
   getIsBalanceNormalized,
   getVeiledBalances,
+  normalizeVeiledBalance,
   registerVeiledBalance,
 } from '@/api/modules/aptos'
 import { Config } from '@/config'
@@ -49,6 +50,9 @@ type VeiledCoinContextType = {
 
   setAccountDecryptionKey: (decryptionKeyHex?: string) => string
   registerAccountEncryptionKey: (encryptionKeyHex: string, tokenAddress: string) => Promise<void>
+  normalizeAccount: () => Promise<void>
+  unfreezeAccount: () => Promise<void>
+  // TODO: rotate keys
 
   decryptionKeyStatusLoadingState: DecryptionKeyStatusLoadingState
   loadSelectedDecryptionKeyState: () => Promise<void>
@@ -80,6 +84,8 @@ const veiledCoinContext = createContext<VeiledCoinContextType>({
 
   setAccountDecryptionKey: () => '',
   registerAccountEncryptionKey: async () => {},
+  normalizeAccount: async () => {},
+  unfreezeAccount: async () => {},
 
   decryptionKeyStatusLoadingState: 'idle',
   loadSelectedDecryptionKeyState: async () => {},
@@ -253,7 +259,7 @@ const useSelectedAccountDecryptionKeyStatus = (
 ) => {
   const selectedPrivateKeyHex = walletStore.useSelectedPrivateKeyHex()
 
-  const { data, isLoading, isLoadingError, isEmpty } = useLoading(undefined, async () => {
+  const { data, isLoading, isLoadingError, isEmpty, reload } = useLoading(undefined, async () => {
     if (!decryptionKeyHex) return undefined
 
     const [{ pending, actual }, isRegistered, isNormalized, isFrozen] = await Promise.all([
@@ -291,10 +297,33 @@ const useSelectedAccountDecryptionKeyStatus = (
     return 'success'
   }, [isEmpty, isLoading, isLoadingError])
 
+  const normalizeAccount = async () => {
+    if (!decryptionKeyHex) throw new TypeError('Decryption key is not set')
+
+    if (!data?.pending?.amountEncrypted || !data?.pending?.amount)
+      throw new TypeError('Pending amount is not loaded')
+
+    await normalizeVeiledBalance(
+      selectedPrivateKeyHex,
+      decryptionKeyHex,
+      data.pending.amountEncrypted,
+      data.pending.amount,
+      tokenAddress,
+    )
+  }
+
+  const unfreezeAccount = async () => {
+    if (!decryptionKeyHex) throw new TypeError('Decryption key is not set')
+
+    // mb: rotate keys with unfreeze
+  }
+
   return {
     selectedAccountDecryptionKeyStatus,
     decryptionKeyStatusLoadingState,
-    loadSelectedDecryptionKeyState: async () => {},
+    loadSelectedDecryptionKeyState: reload,
+    normalizeAccount,
+    unfreezeAccount,
   }
 }
 
@@ -316,6 +345,8 @@ export const VeiledCoinContextProvider = ({ children }: PropsWithChildren) => {
     decryptionKeyStatusLoadingState,
     selectedAccountDecryptionKeyStatus,
     loadSelectedDecryptionKeyState,
+    normalizeAccount,
+    unfreezeAccount,
   } = useSelectedAccountDecryptionKeyStatus(selectedAccountDecryptionKeyHex, selectedToken?.address)
 
   return (
@@ -338,6 +369,8 @@ export const VeiledCoinContextProvider = ({ children }: PropsWithChildren) => {
         selectedAccountEncryptionKeyHex,
         setAccountDecryptionKey,
         registerAccountEncryptionKey,
+        normalizeAccount,
+        unfreezeAccount,
 
         selectedAccountDecryptionKeyStatus,
         decryptionKeyStatusLoadingState,

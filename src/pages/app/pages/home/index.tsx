@@ -25,19 +25,65 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
   const offset = useBottomBarOffset()
   const appPaddings = useAppPaddings()
 
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
   const {
     selectedAccountDecryptionKeyStatus,
     selectedAccountEncryptionKeyHex,
     selectedAccountDecryptionKeyHex,
+
+    registerAccountEncryptionKey,
+    unfreezeAccount,
+    normalizeAccount,
+
+    loadSelectedDecryptionKeyState,
+
+    selectedTokenAddress,
     txHistory,
   } = useVeiledCoinContext()
 
   const isActionsDisabled =
-    !selectedAccountDecryptionKeyHex || !selectedAccountDecryptionKeyStatus.isRegistered
+    !selectedAccountDecryptionKeyHex ||
+    !selectedAccountDecryptionKeyStatus.isRegistered ||
+    isSubmitting
 
-  const tryUnfreeze = useCallback(async () => {}, [])
-  const tryRegister = useCallback(async () => {}, [])
-  const tryNormalize = useCallback(async () => {}, [])
+  const tryUnfreeze = useCallback(async () => {
+    setIsSubmitting(true)
+    try {
+      await unfreezeAccount()
+      await loadSelectedDecryptionKeyState()
+    } catch (error) {
+      ErrorHandler.process(error)
+    }
+    setIsSubmitting(false)
+  }, [loadSelectedDecryptionKeyState, unfreezeAccount])
+
+  const tryRegister = useCallback(async () => {
+    setIsSubmitting(true)
+    try {
+      await registerAccountEncryptionKey(selectedAccountEncryptionKeyHex, selectedTokenAddress)
+      await loadSelectedDecryptionKeyState()
+    } catch (error) {
+      ErrorHandler.process(error)
+    }
+    setIsSubmitting(false)
+  }, [
+    loadSelectedDecryptionKeyState,
+    registerAccountEncryptionKey,
+    selectedAccountEncryptionKeyHex,
+    selectedTokenAddress,
+  ])
+
+  const tryNormalize = useCallback(async () => {
+    setIsSubmitting(true)
+    try {
+      await normalizeAccount()
+      await loadSelectedDecryptionKeyState()
+    } catch (error) {
+      ErrorHandler.process(error)
+    }
+    setIsSubmitting(false)
+  }, [loadSelectedDecryptionKeyState, normalizeAccount])
 
   return (
     <UiScreenScrollable>
