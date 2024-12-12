@@ -4,15 +4,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { useSelectedLanguage } from '@/core'
 import { type Language, resources } from '@/core/localization/resources'
-import { useCopyToClipboard } from '@/hooks'
 import type { AppTabScreenProps } from '@/route-types'
-import {
-  authStore,
-  BiometricStatuses,
-  localAuthStore,
-  PasscodeStatuses,
-  walletStore,
-} from '@/store'
+import { authStore, BiometricStatuses, localAuthStore, PasscodeStatuses } from '@/store'
 import { cn, useAppPaddings, useBottomBarOffset, useSelectedTheme } from '@/theme'
 import { UiButton, UiCard, UiScreenScrollable, UiSwitcher } from '@/ui'
 
@@ -35,7 +28,6 @@ export default function ProfileScreen({}: AppTabScreenProps<'Profile'>) {
         className='gap-3'
       >
         <View className='flex flex-1 flex-col gap-4'>
-          <WalletCard />
           <LangCard />
           <ThemeCard />
           <LocalAuthMethodCard />
@@ -43,29 +35,6 @@ export default function ProfileScreen({}: AppTabScreenProps<'Profile'>) {
         </View>
       </UiScreenScrollable>
     </AppContainer>
-  )
-}
-
-function WalletCard() {
-  const privateKey = walletStore.useWalletStore(state => state.privateKey)
-  const { isCopied, copy } = useCopyToClipboard()
-
-  return (
-    <UiCard>
-      <UiCard className='bg-backgroundPrimary'>
-        <Text className='text-textPrimary typography-body3'>{privateKey}</Text>
-      </UiCard>
-
-      <UiButton
-        variant='text'
-        color='text'
-        leadingIconProps={{
-          customIcon: isCopied ? 'checkIcon' : 'copySimpleIcon',
-        }}
-        title='Copy to Clipboard'
-        onPress={() => copy(privateKey)}
-      />
-    </UiCard>
   )
 }
 

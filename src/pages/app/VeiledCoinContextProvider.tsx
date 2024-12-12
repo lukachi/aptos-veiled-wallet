@@ -12,6 +12,7 @@ import {
   getVeiledBalances,
   normalizeVeiledBalance,
   registerVeiledBalance,
+  safelyRolloverVeiledBalance,
 } from '@/api/modules/aptos'
 import { Config } from '@/config'
 import { useLoading } from '@/hooks'
@@ -44,14 +45,13 @@ type VeiledCoinContextType = {
   removeToken: (address: string) => void
   txHistory: TxHistoryItem[]
 
-  selectedAccountDecryptionKeyHex: string
-  selectedAccountEncryptionKeyHex: string
+  selectedAccountDecryptionKey: TwistedEd25519PrivateKey
   selectedAccountDecryptionKeyStatus: AccountDecryptionKeyStatus
 
-  setAccountDecryptionKey: (decryptionKeyHex?: string) => string
-  registerAccountEncryptionKey: (encryptionKeyHex: string, tokenAddress: string) => Promise<void>
+  registerAccountEncryptionKey: (tokenAddress: string) => Promise<void>
   normalizeAccount: () => Promise<void>
   unfreezeAccount: () => Promise<void>
+  rolloverAccount: () => Promise<void>
   // TODO: rotate keys
 
   decryptionKeyStatusLoadingState: DecryptionKeyStatusLoadingState
@@ -72,8 +72,7 @@ const veiledCoinContext = createContext<VeiledCoinContextType>({
   addToken: () => {},
   removeToken: () => {},
 
-  selectedAccountDecryptionKeyHex: '',
-  selectedAccountEncryptionKeyHex: '',
+  selectedAccountDecryptionKey: TwistedEd25519PrivateKey.generate(),
   selectedAccountDecryptionKeyStatus: {
     isFrozen: false,
     isNormalized: true,
@@ -82,10 +81,10 @@ const veiledCoinContext = createContext<VeiledCoinContextType>({
     actualAmount: '0',
   },
 
-  setAccountDecryptionKey: () => '',
   registerAccountEncryptionKey: async () => {},
   normalizeAccount: async () => {},
   unfreezeAccount: async () => {},
+  rolloverAccount: async () => {},
 
   decryptionKeyStatusLoadingState: 'idle',
   loadSelectedDecryptionKeyState: async () => {},
@@ -141,52 +140,23 @@ const useAccounts = () => {
 }
 
 const useSelectedAccountDecryptionKey = () => {
-  const { decryptionKeyHexMap, setDecryptionKey } = walletStore.useWalletStore(state => ({
-    decryptionKeyHexMap: state.decryptionKeyHexMap,
-
-    setDecryptionKey: state.setDecryptionKey,
-  }))
   const selectedPrivateKeyHex = walletStore.useSelectedPrivateKeyHex()
 
-  const selectedAccountDecryptionKeyHex = decryptionKeyHexMap[selectedPrivateKeyHex] ?? ''
-
   const selectedAccountDecryptionKey = useMemo(() => {
-    if (!selectedAccountDecryptionKeyHex) return undefined
+    return walletStore.decryptionKeyFromPrivateKey(selectedPrivateKeyHex)
+  }, [selectedPrivateKeyHex])
 
-    return new TwistedEd25519PrivateKey(selectedAccountDecryptionKeyHex)
-  }, [selectedAccountDecryptionKeyHex])
-
-  const selectedAccountEncryptionKey = useMemo(() => {
-    if (!selectedAccountDecryptionKey) return undefined
-
-    return selectedAccountDecryptionKey.publicKey()
-  }, [selectedAccountDecryptionKey])
-
-  const selectedAccountEncryptionKeyHex = useMemo(() => {
-    if (!selectedAccountEncryptionKey) return ''
-
-    return selectedAccountEncryptionKey.toString()
-  }, [selectedAccountEncryptionKey])
-
-  const setAccountDecryptionKey = (decryptionKeyHex?: string) => {
-    const newDecryptionKey = decryptionKeyHex
-      ? new TwistedEd25519PrivateKey(decryptionKeyHex)
-      : TwistedEd25519PrivateKey.generate()
-
-    setDecryptionKey(selectedPrivateKeyHex, newDecryptionKey.toString())
-
-    return newDecryptionKey.toString()
-  }
-
-  const registerAccountEncryptionKey = async (encryptionKeyHex: string, tokenAddress: string) => {
-    await registerVeiledBalance(selectedPrivateKeyHex, encryptionKeyHex, tokenAddress)
+  const registerAccountEncryptionKey = async (tokenAddress: string) => {
+    await registerVeiledBalance(
+      selectedPrivateKeyHex,
+      selectedAccountDecryptionKey.publicKey().toString(),
+      tokenAddress,
+    )
   }
 
   return {
-    selectedAccountDecryptionKeyHex,
-    selectedAccountEncryptionKeyHex,
+    selectedAccountDecryptionKey,
 
-    setAccountDecryptionKey,
     registerAccountEncryptionKey,
   }
 }
@@ -315,8 +285,15 @@ const useSelectedAccountDecryptionKeyStatus = (
   const unfreezeAccount = async () => {
     if (!decryptionKeyHex) throw new TypeError('Decryption key is not set')
 
+    // TODO: implement me
     // mb: rotate keys with unfreeze
   }
+
+  const rolloverAccount = useCallback(async () => {
+    if (!decryptionKeyHex) throw new TypeError('Decryption key is not set')
+
+    await safelyRolloverVeiledBalance(selectedPrivateKeyHex, decryptionKeyHex, tokenAddress)
+  }, [decryptionKeyHex, selectedPrivateKeyHex, tokenAddress])
 
   return {
     selectedAccountDecryptionKeyStatus,
@@ -324,21 +301,18 @@ const useSelectedAccountDecryptionKeyStatus = (
     loadSelectedDecryptionKeyState: reload,
     normalizeAccount,
     unfreezeAccount,
+    rolloverAccount,
   }
 }
 
 export const VeiledCoinContextProvider = ({ children }: PropsWithChildren) => {
   const { accountsList, selectedAccount, addNewAccount, removeAccount } = useAccounts()
 
-  const {
-    selectedAccountDecryptionKeyHex,
-    selectedAccountEncryptionKeyHex,
-    setAccountDecryptionKey,
-    registerAccountEncryptionKey,
-  } = useSelectedAccountDecryptionKey()
+  const { selectedAccountDecryptionKey, registerAccountEncryptionKey } =
+    useSelectedAccountDecryptionKey()
 
   const { tokens, selectedToken, txHistory, addToken, removeToken } = useTokens(
-    selectedAccountDecryptionKeyHex,
+    selectedAccountDecryptionKey.toString(),
   )
 
   const {
@@ -347,7 +321,11 @@ export const VeiledCoinContextProvider = ({ children }: PropsWithChildren) => {
     loadSelectedDecryptionKeyState,
     normalizeAccount,
     unfreezeAccount,
-  } = useSelectedAccountDecryptionKeyStatus(selectedAccountDecryptionKeyHex, selectedToken?.address)
+    rolloverAccount,
+  } = useSelectedAccountDecryptionKeyStatus(
+    selectedAccountDecryptionKey.toString(),
+    selectedToken?.address,
+  )
 
   return (
     <veiledCoinContext.Provider
@@ -365,12 +343,11 @@ export const VeiledCoinContextProvider = ({ children }: PropsWithChildren) => {
         addToken,
         removeToken,
 
-        selectedAccountDecryptionKeyHex,
-        selectedAccountEncryptionKeyHex,
-        setAccountDecryptionKey,
+        selectedAccountDecryptionKey,
         registerAccountEncryptionKey,
         normalizeAccount,
         unfreezeAccount,
+        rolloverAccount,
 
         selectedAccountDecryptionKeyStatus,
         decryptionKeyStatusLoadingState,

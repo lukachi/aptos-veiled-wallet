@@ -1,4 +1,3 @@
-import { BottomSheetView } from '@gorhom/bottom-sheet'
 import { type ReactElement, useCallback, useState } from 'react'
 import { Text, TouchableOpacity, type TouchableOpacityProps, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -6,17 +5,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { ErrorHandler } from '@/core'
 import { useVeiledCoinContext } from '@/pages/app/VeiledCoinContextProvider'
 import type { AppTabScreenProps } from '@/route-types'
-import { cn, useAppPaddings, useAppTheme, useBottomBarOffset } from '@/theme'
-import {
-  UiBottomSheet,
-  UiButton,
-  UiCard,
-  UiHorizontalDivider,
-  UiIcon,
-  UiScreenScrollable,
-  UiTextField,
-  useUiBottomSheet,
-} from '@/ui'
+import { cn, useAppPaddings, useBottomBarOffset } from '@/theme'
+import { UiHorizontalDivider, UiIcon, UiScreenScrollable } from '@/ui'
 
 import { TxItem, VBCard } from './components'
 
@@ -28,13 +18,13 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const {
+    selectedAccountDecryptionKey,
     selectedAccountDecryptionKeyStatus,
-    selectedAccountEncryptionKeyHex,
-    selectedAccountDecryptionKeyHex,
 
     registerAccountEncryptionKey,
     unfreezeAccount,
     normalizeAccount,
+    rolloverAccount,
 
     loadSelectedDecryptionKeyState,
 
@@ -42,10 +32,18 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
     txHistory,
   } = useVeiledCoinContext()
 
-  const isActionsDisabled =
-    !selectedAccountDecryptionKeyHex ||
-    !selectedAccountDecryptionKeyStatus.isRegistered ||
-    isSubmitting
+  const isActionsDisabled = !selectedAccountDecryptionKeyStatus.isRegistered || isSubmitting
+
+  const tryRollover = useCallback(async () => {
+    setIsSubmitting(true)
+    try {
+      await rolloverAccount()
+      await loadSelectedDecryptionKeyState()
+    } catch (error) {
+      ErrorHandler.process(error)
+    }
+    setIsSubmitting(false)
+  }, [loadSelectedDecryptionKeyState, rolloverAccount])
 
   const tryUnfreeze = useCallback(async () => {
     setIsSubmitting(true)
@@ -61,18 +59,13 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
   const tryRegister = useCallback(async () => {
     setIsSubmitting(true)
     try {
-      await registerAccountEncryptionKey(selectedAccountEncryptionKeyHex, selectedTokenAddress)
+      await registerAccountEncryptionKey(selectedTokenAddress)
       await loadSelectedDecryptionKeyState()
     } catch (error) {
       ErrorHandler.process(error)
     }
     setIsSubmitting(false)
-  }, [
-    loadSelectedDecryptionKeyState,
-    registerAccountEncryptionKey,
-    selectedAccountEncryptionKeyHex,
-    selectedTokenAddress,
-  ])
+  }, [loadSelectedDecryptionKeyState, registerAccountEncryptionKey, selectedTokenAddress])
 
   const tryNormalize = useCallback(async () => {
     setIsSubmitting(true)
@@ -93,26 +86,15 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
           paddingTop: insets.top,
         }}
       >
-        {selectedAccountDecryptionKeyHex && selectedAccountEncryptionKeyHex ? (
-          <VBCard
-            className='flex gap-4'
-            encryptionKey={selectedAccountEncryptionKeyHex}
-            pendingAmount={selectedAccountDecryptionKeyStatus.pendingAmount}
-            actualAmount={selectedAccountDecryptionKeyStatus.actualAmount}
-            isNormalized={selectedAccountDecryptionKeyStatus.isNormalized}
-            isFrozen={selectedAccountDecryptionKeyStatus.isFrozen}
-            isRegistered={selectedAccountDecryptionKeyStatus.isRegistered}
-          />
-        ) : (
-          <View
-            style={{
-              paddingLeft: appPaddings.left,
-              paddingRight: appPaddings.right,
-            }}
-          >
-            <CreateDecryptionKeyView />
-          </View>
-        )}
+        <VBCard
+          className='flex gap-4'
+          encryptionKey={selectedAccountDecryptionKey.publicKey().toString()}
+          pendingAmount={selectedAccountDecryptionKeyStatus.pendingAmount}
+          actualAmount={selectedAccountDecryptionKeyStatus.actualAmount}
+          isNormalized={selectedAccountDecryptionKeyStatus.isNormalized}
+          isFrozen={selectedAccountDecryptionKeyStatus.isFrozen}
+          isRegistered={selectedAccountDecryptionKeyStatus.isRegistered}
+        />
         <UiHorizontalDivider className='my-4' />
 
         <View className='flex w-full flex-row items-center justify-center gap-8'>
@@ -152,71 +134,61 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
           }}
         >
           <View className='flex w-full flex-1'>
-            {selectedAccountDecryptionKeyHex && (
-              <>
-                <View className='flex gap-4'>
-                  <Text className='uppercase text-textPrimary typography-caption3'>
-                    Don't forget
-                  </Text>
+            <View className='flex gap-4'>
+              <Text className='uppercase text-textPrimary typography-caption3'>Don't forget</Text>
 
-                  {!selectedAccountDecryptionKeyStatus.isRegistered ? (
+              {!selectedAccountDecryptionKeyStatus.isRegistered ? (
+                <ActionCard
+                  title={'Register Balance'}
+                  desc={'Lorem ipsum dolor sit amet concestetur! Lorem ipsum dolor sit amet!'}
+                  leadingContent={
+                    <UiIcon
+                      libIcon={'FontAwesome'}
+                      name={'id-card'}
+                      size={32}
+                      className={'self-center text-textPrimary'}
+                    />
+                  }
+                  onPress={tryRegister}
+                />
+              ) : (
+                <>
+                  {selectedAccountDecryptionKeyStatus.isFrozen && (
                     <ActionCard
-                      title={'Register Balance'}
+                      title={'Unfreeze Balance'}
                       desc={'Lorem ipsum dolor sit amet concestetur! Lorem ipsum dolor sit amet!'}
                       leadingContent={
                         <UiIcon
                           libIcon={'FontAwesome'}
-                          name={'id-card'}
+                          name={'snowflake-o'}
                           size={32}
                           className={'self-center text-textPrimary'}
                         />
                       }
-                      onPress={tryRegister}
+                      onPress={tryUnfreeze}
                     />
-                  ) : (
-                    <>
-                      {selectedAccountDecryptionKeyStatus.isFrozen && (
-                        <ActionCard
-                          title={'Unfreeze Balance'}
-                          desc={
-                            'Lorem ipsum dolor sit amet concestetur! Lorem ipsum dolor sit amet!'
-                          }
-                          leadingContent={
-                            <UiIcon
-                              libIcon={'FontAwesome'}
-                              name={'snowflake-o'}
-                              size={32}
-                              className={'self-center text-textPrimary'}
-                            />
-                          }
-                          onPress={tryUnfreeze}
-                        />
-                      )}
-
-                      {!selectedAccountDecryptionKeyStatus.isNormalized && (
-                        <ActionCard
-                          title={'Normalize Balance'}
-                          desc={
-                            'Lorem ipsum dolor sit amet concestetur! Lorem ipsum dolor sit amet!'
-                          }
-                          leadingContent={
-                            <UiIcon
-                              libIcon={'FontAwesome'}
-                              name={'exclamation-triangle'}
-                              size={32}
-                              className={'self-center text-textPrimary'}
-                            />
-                          }
-                          onPress={tryNormalize}
-                        />
-                      )}
-                    </>
                   )}
-                </View>
 
-                <UiHorizontalDivider className='my-4' />
-              </>
-            )}
+                  {!selectedAccountDecryptionKeyStatus.isNormalized && (
+                    <ActionCard
+                      title={'Normalize Balance'}
+                      desc={'Lorem ipsum dolor sit amet concestetur! Lorem ipsum dolor sit amet!'}
+                      leadingContent={
+                        <UiIcon
+                          libIcon={'FontAwesome'}
+                          name={'exclamation-triangle'}
+                          size={32}
+                          className={'self-center text-textPrimary'}
+                        />
+                      }
+                      onPress={tryNormalize}
+                    />
+                  )}
+                </>
+              )}
+            </View>
+
+            <UiHorizontalDivider className='my-4' />
 
             {txHistory.length ? (
               <View className='flex gap-6'>
@@ -279,76 +251,5 @@ function ActionCard({
         <UiIcon libIcon='AntDesign' name='caretright' size={12} className='text-baseWhite' />
       </View>
     </TouchableOpacity>
-  )
-}
-
-function CreateDecryptionKeyView() {
-  const { palette } = useAppTheme()
-
-  const insets = useSafeAreaInsets()
-
-  const [importedDecryptionKey, setImportedDecryptionKey] = useState('')
-
-  const { setAccountDecryptionKey } = useVeiledCoinContext()
-
-  const { ref, present } = useUiBottomSheet()
-
-  const tryImport = useCallback(async () => {
-    try {
-      setAccountDecryptionKey(importedDecryptionKey)
-    } catch (error) {
-      ErrorHandler.process(error)
-    }
-  }, [importedDecryptionKey, setAccountDecryptionKey])
-
-  return (
-    <UiCard className='flex items-center'>
-      <UiIcon libIcon='FontAwesome' name='key' size={64} className='text-primaryMain' />
-
-      <Text className='mt-4 max-w-[75%] text-center text-textPrimary typography-subtitle1'>
-        You haven't created Veiled Balance yet
-      </Text>
-
-      <Text className='mt-2 max-w-[75%] text-center text-textSecondary typography-body3'>
-        Let's create and register Veiled Balance
-      </Text>
-
-      <UiButton className='mt-4 w-full' title='Create Veiled Balance' onPress={present} />
-
-      <UiBottomSheet
-        ref={ref}
-        enableDynamicSizing
-        backgroundStyle={{
-          backgroundColor: palette.backgroundContainer,
-        }}
-      >
-        <BottomSheetView style={{ paddingBottom: insets.bottom }}>
-          <View className={cn('py-0, flex flex-col gap-4 p-5 pt-0')}>
-            <Text className='text-textPrimary typography-h5'>New Veiled Balance</Text>
-
-            <UiHorizontalDivider />
-
-            <UiTextField
-              label='import existing'
-              placeholder={'Decryption key'}
-              onChangeText={v => setImportedDecryptionKey(v)}
-            />
-
-            <UiButton
-              className='mt-6 w-full'
-              title='Import'
-              onPress={tryImport}
-              disabled={!importedDecryptionKey}
-            />
-
-            <TouchableOpacity className='w-full' onPress={() => setAccountDecryptionKey()}>
-              <Text className='mt-2 w-full self-center text-center uppercase text-primaryMain typography-caption2'>
-                Generate new
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </BottomSheetView>
-      </UiBottomSheet>
-    </UiCard>
   )
 }

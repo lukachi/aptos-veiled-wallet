@@ -2,7 +2,7 @@ import type { TimeDate } from '@distributedlab/tools'
 import { create } from 'zustand'
 import { combine, createJSONStorage, persist } from 'zustand/middleware'
 
-import { generatePrivateKeyHex } from '@/api/modules/aptos'
+import { decryptionKeyFromPrivateKey, generatePrivateKeyHex } from '@/api/modules/aptos'
 import { Config } from '@/config'
 import { zustandSecureStorage } from '@/store/helpers'
 
@@ -21,7 +21,6 @@ export type TxHistoryItem = {
 
 type StoreState = {
   privateKeyHexList: string[]
-  decryptionKeyHexMap: Record<string, string>
 
   _selectedPrivateKeyHex: string
 
@@ -68,14 +67,6 @@ const useWalletStore = create(
             _selectedPrivateKeyHex: privateKeyHex,
           }))
         },
-        setDecryptionKey: (privateKeyHex: string, decryptionKeyHex: string): void => {
-          set(state => ({
-            decryptionKeyHexMap: {
-              ...state.decryptionKeyHexMap,
-              [privateKeyHex]: decryptionKeyHex,
-            },
-          }))
-        },
         setSelectedPrivateKeyHex: (privateKeyHex: string): void => {
           set({
             _selectedPrivateKeyHex: privateKeyHex,
@@ -84,9 +75,6 @@ const useWalletStore = create(
         removePrivateKey: (privateKeyHex: string): void => {
           set(state => ({
             privateKeyHexList: state.privateKeyHexList.filter(hex => hex !== privateKeyHex),
-            decryptionKeyHexMap: Object.fromEntries(
-              Object.entries(state.decryptionKeyHexMap).filter(([key]) => key !== privateKeyHex),
-            ),
           }))
         },
 
@@ -138,7 +126,6 @@ const useWalletStore = create(
         clearStoredKeys: (): void => {
           set({
             privateKeyHexList: [],
-            decryptionKeyHexMap: {},
           })
         },
       }),
@@ -154,7 +141,6 @@ const useWalletStore = create(
 
       partialize: state => ({
         privateKeyHexList: state.privateKeyHexList,
-        decryptionKeyHexMap: state.decryptionKeyHexMap,
         _selectedPrivateKeyHex: state._selectedPrivateKeyHex,
         tokensListToDecryptionKeyHexMap: state.tokensListToDecryptionKeyHexMap,
         selectedTokenAddress: state._selectedTokenAddress,
@@ -178,4 +164,5 @@ export const walletStore = {
   generatePrivateKeyHex,
   useSelectedPrivateKeyHex,
   useSelectedTokenAddress,
+  decryptionKeyFromPrivateKey,
 }

@@ -34,6 +34,14 @@ export const accountFromPrivateKey = (privateKeyHex: string) => {
   })
 }
 
+export const decryptionKeyFromPrivateKey = (privateKeyHex: string) => {
+  const account = accountFromPrivateKey(privateKeyHex)
+
+  const signature = account.sign(TwistedEd25519PrivateKey.decryptionKeyDerivationMessage)
+
+  return TwistedEd25519PrivateKey.fromSignature(signature)
+}
+
 export const sendAndWaitTx = async (
   transaction: AnyRawTransaction,
   signer: Account,
