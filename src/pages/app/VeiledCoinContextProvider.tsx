@@ -6,6 +6,8 @@ import { useCallback } from 'react'
 import { createContext, useContext, useMemo } from 'react'
 
 import { accountFromPrivateKey, registerVeiledBalance } from '@/api/modules/aptos'
+import { Config } from '@/config'
+import type { TxHistoryItem } from '@/store'
 import { type TokenBaseInfo, walletStore } from '@/store'
 
 type AccountDecryptionKeyStatus = {
@@ -30,13 +32,14 @@ type VeiledCoinContextType = {
 
   addToken: (token: TokenBaseInfo) => void
   removeToken: (address: string) => void
+  txHistory: TxHistoryItem[]
 
   selectedAccountDecryptionKeyHex: string
   selectedAccountEncryptionKeyHex: string
   selectedAccountDecryptionKeyStatus: AccountDecryptionKeyStatus
 
   setAccountDecryptionKey: (decryptionKeyHex?: string) => string
-  registerAccountEncryptionKey: (encryptionKeyHex: string, tokenAddress: string) => void
+  registerAccountEncryptionKey: (encryptionKeyHex: string, tokenAddress: string) => Promise<void>
 
   decryptionKeyStatusLoadingState: 'idle' | 'loading' | 'success' | 'error' // FIXME: implement
   loadSelectedDecryptionKeyState: () => Promise<void>
@@ -51,6 +54,7 @@ const veiledCoinContext = createContext<VeiledCoinContextType>({
 
   tokens: [],
   selectedTokenAddress: '',
+  txHistory: [],
 
   addToken: () => {},
   removeToken: () => {},
@@ -66,7 +70,7 @@ const veiledCoinContext = createContext<VeiledCoinContextType>({
   },
 
   setAccountDecryptionKey: () => '',
-  registerAccountEncryptionKey: () => {},
+  registerAccountEncryptionKey: async () => {},
 
   decryptionKeyStatusLoadingState: 'idle',
   loadSelectedDecryptionKeyState: async () => {},
@@ -175,11 +179,13 @@ const useSelectedAccountDecryptionKey = () => {
 const useTokens = (decryptionKeyHex: string | undefined) => {
   const tokensStoreManager = walletStore.useWalletStore(state => ({
     tokensListToDecryptionKeyHexMap: state.tokensListToDecryptionKeyHexMap,
-    selectedTokenAddress: state.selectedTokenAddress,
+    decryptionKeyPerTokenTxHistory: state.decryptionKeyPerTokenTxHistory,
     setSelectedTokenAddress: state.setSelectedTokenAddress,
     addToken: state.addToken,
     removeToken: state.removeToken,
   }))
+
+  const selectedTokenAddress = walletStore.useSelectedTokenAddress()
 
   const tokens = useMemo(() => {
     if (!decryptionKeyHex) return []
@@ -188,12 +194,21 @@ const useTokens = (decryptionKeyHex: string | undefined) => {
   }, [decryptionKeyHex, tokensStoreManager.tokensListToDecryptionKeyHexMap])
 
   const selectedToken = useMemo(() => {
-    if (!decryptionKeyHex) return undefined
+    if (!decryptionKeyHex || !tokens.length) return Config.DEFAULT_TOKEN
 
-    if (!tokens.length) return undefined
+    return tokens.find(token => token.address === selectedTokenAddress)
+  }, [decryptionKeyHex, tokens, selectedTokenAddress])
 
-    return tokens.find(token => token.address === tokensStoreManager.selectedTokenAddress)
-  }, [decryptionKeyHex, tokens, tokensStoreManager.selectedTokenAddress])
+  const txHistory = useMemo(() => {
+    if (!decryptionKeyHex) return []
+
+    if (!selectedToken) return []
+
+    const mappedTxHistory =
+      tokensStoreManager.decryptionKeyPerTokenTxHistory[decryptionKeyHex]?.[selectedToken.address]
+
+    return mappedTxHistory ?? []
+  }, [decryptionKeyHex, selectedToken, tokensStoreManager.decryptionKeyPerTokenTxHistory])
 
   const addToken = useCallback(
     (token: TokenBaseInfo) => {
@@ -216,6 +231,7 @@ const useTokens = (decryptionKeyHex: string | undefined) => {
   return {
     tokens,
     selectedToken,
+    txHistory,
     setSelectedTokenAddress: tokensStoreManager.setSelectedTokenAddress,
     addToken,
     removeToken,
@@ -255,7 +271,7 @@ export const VeiledCoinContextProvider = ({ children }: PropsWithChildren) => {
     registerAccountEncryptionKey,
   } = useSelectedAccountDecryptionKey()
 
-  const { tokens, selectedToken, addToken, removeToken } = useTokens(
+  const { tokens, selectedToken, txHistory, addToken, removeToken } = useTokens(
     selectedAccountDecryptionKeyHex,
   )
 
@@ -277,6 +293,7 @@ export const VeiledCoinContextProvider = ({ children }: PropsWithChildren) => {
 
         tokens,
         selectedTokenAddress: selectedToken?.address ?? '',
+        txHistory,
         addToken,
         removeToken,
 

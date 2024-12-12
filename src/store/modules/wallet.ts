@@ -1,7 +1,9 @@
+import type { TimeDate } from '@distributedlab/tools'
 import { create } from 'zustand'
 import { combine, createJSONStorage, persist } from 'zustand/middleware'
 
 import { generatePrivateKeyHex } from '@/api/modules/aptos'
+import { Config } from '@/config'
 import { zustandSecureStorage } from '@/store/helpers'
 
 export type TokenBaseInfo = {
@@ -12,6 +14,11 @@ export type TokenBaseInfo = {
   iconUri: string
 }
 
+export type TxHistoryItem = {
+  createdAt: TimeDate
+  txType: 'transfer' | 'deposit' | 'withdraw' | 'rollover' | 'key-rotation' | 'freeze' | 'unfreeze'
+}
+
 type StoreState = {
   privateKeyHexList: string[]
   decryptionKeyHexMap: Record<string, string>
@@ -19,7 +26,15 @@ type StoreState = {
   _selectedPrivateKeyHex: string
 
   tokensListToDecryptionKeyHexMap: Record<string, TokenBaseInfo[]>
-  selectedTokenAddress: string
+  _selectedTokenAddress: string
+
+  decryptionKeyPerTokenTxHistory: Record<
+    string, // decryptionKeyHex - owner
+    Record<
+      string, // token
+      TxHistoryItem[] // tx history
+    >
+  >
 
   _hasHydrated: boolean
 }
@@ -34,7 +49,9 @@ const useWalletStore = create(
         _selectedPrivateKeyHex: '',
 
         tokensListToDecryptionKeyHexMap: {},
-        selectedTokenAddress: '',
+        _selectedTokenAddress: '',
+
+        decryptionKeyPerTokenTxHistory: {},
 
         _hasHydrated: false,
       } as StoreState,
@@ -75,7 +92,7 @@ const useWalletStore = create(
 
         setSelectedTokenAddress: (tokenAddress: string): void => {
           set({
-            selectedTokenAddress: tokenAddress,
+            _selectedTokenAddress: tokenAddress,
           })
         },
         addToken: (decryptionKeyHex: string, token: TokenBaseInfo): void => {
@@ -96,6 +113,24 @@ const useWalletStore = create(
               [decryptionKeyHex]: (
                 state.tokensListToDecryptionKeyHexMap[decryptionKeyHex] || []
               ).filter(token => token.address !== tokenAddress),
+            },
+          }))
+        },
+        addTxHistoryItem: (
+          decryptionKeyHex: string,
+          tokenAddress: string,
+          details: TxHistoryItem,
+        ): void => {
+          set(state => ({
+            decryptionKeyPerTokenTxHistory: {
+              ...state.decryptionKeyPerTokenTxHistory,
+              [decryptionKeyHex]: {
+                ...state.decryptionKeyPerTokenTxHistory[decryptionKeyHex],
+                [tokenAddress]: [
+                  ...(state.decryptionKeyPerTokenTxHistory[decryptionKeyHex]?.[tokenAddress] || []),
+                  details,
+                ],
+              },
             },
           }))
         },
@@ -122,7 +157,8 @@ const useWalletStore = create(
         decryptionKeyHexMap: state.decryptionKeyHexMap,
         _selectedPrivateKeyHex: state._selectedPrivateKeyHex,
         tokensListToDecryptionKeyHexMap: state.tokensListToDecryptionKeyHexMap,
-        selectedTokenAddress: state.selectedTokenAddress,
+        selectedTokenAddress: state._selectedTokenAddress,
+        decryptionKeyPerTokenTxHistory: state.decryptionKeyPerTokenTxHistory,
       }),
     },
   ),
@@ -132,9 +168,14 @@ const useSelectedPrivateKeyHex = () => {
   return useWalletStore(state => state._selectedPrivateKeyHex || state.privateKeyHexList[0])
 }
 
+const useSelectedTokenAddress = () => {
+  return useWalletStore(state => state._selectedTokenAddress || Config.DEFAULT_TOKEN.address)
+}
+
 export const walletStore = {
   useWalletStore,
 
   generatePrivateKeyHex,
   useSelectedPrivateKeyHex,
+  useSelectedTokenAddress,
 }

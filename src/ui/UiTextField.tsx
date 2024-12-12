@@ -18,7 +18,7 @@ const inputTv = tv({
     container: cn(
       'flex flex-row items-center gap-2 rounded-xl border-[1px] border-componentPrimary bg-transparent px-4 py-3',
     ),
-    input: cn('placeholder-textSecondary text-textPrimary'),
+    input: cn('placeholder-textSecondary text-textPrimary typography-body2'),
   },
 
   variants: {

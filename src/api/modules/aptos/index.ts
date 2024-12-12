@@ -76,7 +76,7 @@ export const withdrawVeiledBalance = async (
   decryptionKeyHex: string,
   withdrawAmount: bigint,
   encryptedActualBalance: TwistedElGamalCiphertext[],
-  tokenAddress = Config.DEFAULT_VEILED_TOKEN_ADDRESS,
+  tokenAddress = Config.DEFAULT_TOKEN.address,
 ) => {
   const account = accountFromPrivateKey(privateKeyHex)
   const decryptionKey = new TwistedEd25519PrivateKey(decryptionKeyHex)
@@ -98,7 +98,7 @@ export const transferVeiledCoin = async (
   encryptedActualBalance: TwistedElGamalCiphertext[],
   amountToTransfer: bigint,
   auditorsEncryptionKeyHexList: string[],
-  tokenAddress = Config.DEFAULT_VEILED_TOKEN_ADDRESS,
+  tokenAddress = Config.DEFAULT_TOKEN.address,
 ) => {
   const account = accountFromPrivateKey(privateKeyHex)
   const decryptionKey = new TwistedEd25519PrivateKey(decryptionKeyHex)
@@ -123,7 +123,7 @@ export const safelyRotateVeiledBalance = async (
   privateKeyHex: string,
   decryptionKeyHex: string,
   currEncryptedBalance: TwistedElGamalCiphertext[],
-  tokenAddress = Config.DEFAULT_VEILED_TOKEN_ADDRESS,
+  tokenAddress = Config.DEFAULT_TOKEN.address,
 ) => {
   const newDecryptionKey = TwistedEd25519PrivateKey.generate()
 
@@ -145,7 +145,7 @@ export const safelyRotateVeiledBalance = async (
 export const safelyRolloverVeiledBalance = async (
   privateKeyHex: string,
   decryptionKeyHex: string,
-  tokenAddress = Config.DEFAULT_VEILED_TOKEN_ADDRESS,
+  tokenAddress = Config.DEFAULT_TOKEN.address,
 ) => {
   const account = accountFromPrivateKey(privateKeyHex)
 
@@ -162,7 +162,7 @@ export const safelyRolloverVeiledBalance = async (
 export const registerVeiledBalance = async (
   privateKeyHex: string,
   publicKeyHex: string,
-  tokenAddress = Config.DEFAULT_VEILED_TOKEN_ADDRESS,
+  tokenAddress = Config.DEFAULT_TOKEN.address,
 ) => {
   const account = accountFromPrivateKey(privateKeyHex)
 
@@ -180,7 +180,7 @@ export const normalizeVeiledBalance = async (
   decryptionKeyHex: string,
   amountEncrypted: TwistedElGamalCiphertext[],
   amount: bigint,
-  tokenAddress = Config.DEFAULT_VEILED_TOKEN_ADDRESS,
+  tokenAddress = Config.DEFAULT_TOKEN.address,
 ) => {
   const account = accountFromPrivateKey(privateKey)
 
@@ -203,7 +203,7 @@ export const getGlobalAuditor = () => {
 export const depositVeiledBalance = async (
   privateKey: string,
   amount: number,
-  tokenAddress = Config.DEFAULT_VEILED_TOKEN_ADDRESS,
+  tokenAddress = Config.DEFAULT_TOKEN.address,
 ) => {
   const account = accountFromPrivateKey(privateKey)
 
@@ -217,7 +217,7 @@ export const depositVeiledBalance = async (
 
 export const getIsAccountRegisteredWithToken = async (
   privateKey: string,
-  tokenAddress = Config.DEFAULT_VEILED_TOKEN_ADDRESS,
+  tokenAddress = Config.DEFAULT_TOKEN.address,
 ) => {
   const account = accountFromPrivateKey(privateKey)
 
@@ -231,7 +231,7 @@ export const getIsAccountRegisteredWithToken = async (
 
 export const getIsBalanceNormalized = async (
   privateKey: string,
-  tokenAddress = Config.DEFAULT_VEILED_TOKEN_ADDRESS,
+  tokenAddress = Config.DEFAULT_TOKEN.address,
 ) => {
   const account = accountFromPrivateKey(privateKey)
 
@@ -245,7 +245,7 @@ export const getIsBalanceNormalized = async (
 
 export const getIsBalanceFrozen = async (
   privateKey: string,
-  tokenAddress = Config.DEFAULT_VEILED_TOKEN_ADDRESS,
+  tokenAddress = Config.DEFAULT_TOKEN.address,
 ) => {
   const account = accountFromPrivateKey(privateKey)
 
@@ -270,7 +270,7 @@ export const getAptBalance = async (privateKey: string) => {
 export const getVeiledBalances = async (
   privateKey: string,
   decryptionKeyHex: string,
-  tokenAddress = Config.DEFAULT_VEILED_TOKEN_ADDRESS,
+  tokenAddress = Config.DEFAULT_TOKEN.address,
 ) => {
   const account = accountFromPrivateKey(privateKey)
   const decryptionKey = new TwistedEd25519PrivateKey(decryptionKeyHex)

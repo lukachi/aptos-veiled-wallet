@@ -1,14 +1,11 @@
-import type { TimeDate } from '@distributedlab/tools'
 import { Text, View, type ViewProps } from 'react-native'
 
 import { formatDateDMYT } from '@/helpers'
+import { type TxHistoryItem } from '@/store'
 import { cn } from '@/theme'
 import { UiIcon } from '@/ui'
 
-type Props = {
-  createdAt: TimeDate
-  txType: 'transfer' | 'deposit' | 'withdraw' | 'rollover' | 'key-rotation' | 'freeze' | 'unfreeze'
-} & ViewProps
+type Props = TxHistoryItem & ViewProps
 
 export default function TxItem({ createdAt, txType, ...rest }: Props) {
   const message = {
