@@ -1,19 +1,21 @@
 import { BottomSheetView } from '@gorhom/bottom-sheet'
 import { useNavigation } from '@react-navigation/native'
-import { useCallback, useMemo, useRef } from 'react'
+import LottieView from 'lottie-react-native'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { Dimensions, Text, View } from 'react-native'
-import type { ICarouselInstance } from 'react-native-reanimated-carousel'
-import Carousel from 'react-native-reanimated-carousel'
+import { useSharedValue } from 'react-native-reanimated'
+import Carousel, { type ICarouselInstance, Pagination } from 'react-native-reanimated-carousel'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { translate } from '@/core'
 import { sleep } from '@/helpers'
-import { cn, useAppTheme } from '@/theme'
+import { type AuthStackScreenProps } from '@/route-types'
+import { cn, useAppPaddings, useAppTheme } from '@/theme'
 import {
   UiBottomSheet,
   UiButton,
   UiHorizontalDivider,
-  UiIcon,
+  UiImage,
   UiScreenScrollable,
   useUiBottomSheet,
 } from '@/ui'
@@ -23,43 +25,84 @@ import { StepLayout } from './components'
 
 const screenWidth = Dimensions.get('window').width
 
-export default function Intro() {
+export default function Intro({}: AuthStackScreenProps<'Intro'>) {
   const insets = useSafeAreaInsets()
+  const appPaddings = useAppPaddings()
 
   const { palette } = useAppTheme()
 
   const ref = useRef<ICarouselInstance>(null)
 
-  const bottomSheet = useUiBottomSheet()
-
-  const navigation = useNavigation()
-
   const steps = useMemo(() => {
     return [
       {
-        title: translate('auth.intro.step-1.title'),
+        title: (
+          <Text className='text-center text-textPrimary typography-h4'>
+            Step 1 <Text className='text-center text-primaryMain'>accent</Text>
+          </Text>
+        ),
         subtitle: translate('auth.intro.step-1.subtitle'),
-        media: <UiIcon customIcon='starFillIcon' className='size-[150px] text-textSecondary' />,
+        media: (
+          <View className='size-[300]'>
+            <LottieView
+              source={require('@assets/images/crypto-1-animation.json')}
+              style={{ width: '100%', height: '100%' }}
+              autoPlay
+              loop
+            />
+          </View>
+        ),
       },
       {
         title: translate('auth.intro.step-2.title'),
         subtitle: translate('auth.intro.step-2.subtitle'),
-        media: <UiIcon customIcon='sealCheckIcon' className='size-[150px] text-textSecondary' />,
+        media: (
+          <View className='size-[300]'>
+            <LottieView
+              source={require('@assets/images/crypto-2-animation.json')}
+              style={{ width: '100%', height: '100%' }}
+              autoPlay
+              loop
+            />
+          </View>
+        ),
       },
       {
         title: translate('auth.intro.step-3.title'),
         subtitle: translate('auth.intro.step-3.subtitle'),
         media: (
-          <UiIcon customIcon='suitcaseSimpleFillIcon' className='size-[150px] text-textSecondary' />
+          <UiImage
+            source={{ uri: 'https://picsum.photos/500' }}
+            className='h-[300px] w-[300px]'
+            contentFit={'contain'}
+          />
         ),
-      },
-      {
-        title: translate('auth.intro.step-4.title'),
-        subtitle: translate('auth.intro.step-4.subtitle'),
-        media: <UiIcon customIcon='sunIcon' className='size-[150px] text-textSecondary' />,
       },
     ]
   }, [])
+
+  const navigation = useNavigation()
+
+  const bottomSheet = useUiBottomSheet()
+
+  const progress = useSharedValue(0)
+  const [isLastSlide, setIsLastSlide] = useState(false)
+
+  const nextSlide = useCallback(() => {
+    ref.current?.next()
+    setIsLastSlide(ref.current?.getCurrentIndex() === steps.length - 2)
+  }, [steps.length])
+
+  const onPressPagination = (index: number) => {
+    ref.current?.scrollTo({
+      /**
+       * Calculate the difference between the current index and the target index
+       * to ensure that the carousel scrolls to the nearest index
+       */
+      count: index - progress.value,
+      animated: true,
+    })
+  }
 
   const handleCreatePK = useCallback(async () => {
     bottomSheet.dismiss()
@@ -81,70 +124,113 @@ export default function Intro() {
   }, [bottomSheet, navigation])
 
   return (
-    <UiScreenScrollable style={{ paddingBottom: insets.bottom, paddingTop: insets.top }}>
-      <View className='flex flex-1 flex-col justify-center'>
-        <Carousel
-          ref={ref}
-          width={screenWidth}
-          data={steps}
-          loop={false}
-          autoPlay={true}
-          autoPlayInterval={5_000}
-          style={{
-            flex: 1,
-          }}
-          renderItem={({ index }) => (
-            <StepLayout
-              className='flex-1'
-              title={steps[index].title}
-              subtitle={steps[index].subtitle}
-              media={steps[index].media}
-            />
-          )}
-        />
-      </View>
-
-      <View className='p-5'>
-        <UiHorizontalDivider />
-      </View>
-
-      <View className='flex flex-col px-5'>
-        <UiButton
-          className={cn('w-full')}
-          title={translate('auth.intro.next-btn')}
-          onPress={() => {
-            bottomSheet.present()
-          }}
-        />
-      </View>
-
-      <UiBottomSheet
-        headerComponent={
-          <BottomSheetHeader
-            title={'Authorization'}
-            dismiss={bottomSheet.dismiss}
-            className={'px-5 text-center'}
+    <UiScreenScrollable
+      style={{
+        paddingBottom: insets.bottom,
+        paddingTop: insets.top,
+      }}
+    >
+      <View className='flex flex-1 flex-col items-center justify-center'>
+        <View className='w-full flex-1 overflow-hidden pb-6'>
+          <Carousel
+            ref={ref}
+            vertical={undefined}
+            width={screenWidth}
+            height={undefined}
+            data={steps}
+            onProgressChange={progress}
+            loop={false}
+            autoPlay={false}
+            onSnapToItem={index => {
+              setIsLastSlide(index === steps.length - 1)
+            }}
+            autoPlayInterval={5_000}
+            style={{
+              paddingLeft: appPaddings.left,
+              paddingRight: appPaddings.right,
+            }}
+            renderItem={({ index }) => (
+              <StepLayout
+                className='flex-1'
+                title={steps[index].title}
+                subtitle={steps[index].subtitle}
+                media={steps[index].media}
+              />
+            )}
           />
-        }
-        ref={bottomSheet.ref}
-        enableDynamicSizing={true}
-        backgroundStyle={{
-          backgroundColor: palette.backgroundContainer,
-        }}
-      >
-        <BottomSheetView style={{ paddingBottom: insets.bottom }}>
-          <View className={cn('py-0, flex flex-col items-center gap-4 p-5')}>
-            <UiHorizontalDivider />
+        </View>
 
-            <Text className='text-textSecondary typography-body2'>Choose a preferred method</Text>
+        <View className='mt-auto h-[4] w-full pb-6'>
+          <Pagination.Basic
+            progress={progress}
+            data={steps}
+            dotStyle={{
+              width: 32,
+              height: 4,
+              backgroundColor: palette.textSecondary, // FIXME: color
+              borderRadius: 2,
+            }}
+            activeDotStyle={{ backgroundColor: palette.primaryMain }}
+            containerStyle={{
+              gap: 4,
+            }}
+            onPress={onPressPagination}
+          />
+        </View>
 
-            <View className='mt-auto flex w-full flex-col gap-2'>
-              <UiButton size='large' title='Create a new profile' onPress={handleCreatePK} />
-              <UiButton size='large' title='Re-activate old profile' onPress={handleImportPK} />
+        <UiHorizontalDivider />
+
+        <View
+          className='mt-auto w-full pt-6'
+          style={{
+            paddingLeft: appPaddings.left,
+            paddingRight: appPaddings.right,
+          }}
+        >
+          {isLastSlide ? (
+            <UiButton
+              className='w-full'
+              onPress={() => {
+                bottomSheet.present()
+              }}
+            >
+              Get Started
+            </UiButton>
+          ) : (
+            <UiButton className='w-full' onPress={nextSlide}>
+              Next
+            </UiButton>
+          )}
+        </View>
+
+        <UiBottomSheet
+          headerComponent={
+            <BottomSheetHeader
+              title={'Authorization'}
+              dismiss={bottomSheet.dismiss}
+              className={'px-5 text-center'}
+            />
+          }
+          ref={bottomSheet.ref}
+          enableDynamicSizing={true}
+          backgroundStyle={{
+            backgroundColor: palette.backgroundContainer,
+          }}
+        >
+          <BottomSheetView style={{ paddingBottom: insets.bottom }}>
+            <View className={cn('py-0, flex flex-col items-center gap-4 p-5')}>
+              <UiHorizontalDivider />
+
+              <Text className='text-textSecondary typography-body2'>Choose a preferred method</Text>
+
+              <View className='mt-auto flex w-full flex-col gap-2'>
+                <UiButton size='large' title='Create a new profile' onPress={handleCreatePK} />
+                <UiButton size='large' title='Re-activate old profile' onPress={handleImportPK} />
+              </View>
             </View>
-          </View>
-        </BottomSheetView>
-      </UiBottomSheet>
+          </BottomSheetView>
+        </UiBottomSheet>
+      </View>
     </UiScreenScrollable>
   )
 }

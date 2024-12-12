@@ -22,6 +22,7 @@ type Props = {
 } & ViewProps
 
 export default function VBCard({
+  token,
   encryptionKey,
   pendingAmount,
   actualAmount,
@@ -72,10 +73,25 @@ export default function VBCard({
     return
   }, [isFrozen, isNormalized, isRegistered])
 
+  const { copy, isCopied } = useCopyToClipboard()
+
   return (
     <View className='relative'>
       {VBStatusContent}
       <UiCard {...rest} className={cn('z-20', rest.className)}>
+        <View className='flex flex-row items-center gap-2'>
+          <Text className='text-textPrimary typography-subtitle2'>{token.name}</Text>
+
+          <TouchableOpacity onPress={() => copy(token.address)}>
+            <UiIcon
+              libIcon='AntDesign'
+              name={isCopied ? 'check' : 'copy1'}
+              size={16}
+              className='pl-2 text-textSecondary'
+            />
+          </TouchableOpacity>
+        </View>
+
         <View className='flex flex-row items-center'>
           <View className='flex gap-1'>
             <Text className='text-textSecondary typography-caption1'>

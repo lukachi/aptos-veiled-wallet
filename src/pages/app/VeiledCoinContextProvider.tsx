@@ -232,19 +232,30 @@ const useSelectedAccountDecryptionKeyStatus = (
   const { data, isLoading, isLoadingError, isEmpty, reload } = useLoading(undefined, async () => {
     if (!decryptionKeyHex) return undefined
 
-    const [{ pending, actual }, isRegistered, isNormalized, isFrozen] = await Promise.all([
-      getVeiledBalances(selectedPrivateKeyHex, decryptionKeyHex, tokenAddress),
-      getIsAccountRegisteredWithToken(selectedPrivateKeyHex, tokenAddress),
-      getIsBalanceNormalized(selectedPrivateKeyHex, tokenAddress),
-      getIsBalanceFrozen(selectedPrivateKeyHex, tokenAddress),
-    ])
+    const isRegistered = await getIsAccountRegisteredWithToken(selectedPrivateKeyHex, tokenAddress)
+
+    if (isRegistered) {
+      const [{ pending, actual }, isNormalized, isFrozen] = await Promise.all([
+        getVeiledBalances(selectedPrivateKeyHex, decryptionKeyHex, tokenAddress),
+        getIsBalanceNormalized(selectedPrivateKeyHex, tokenAddress),
+        getIsBalanceFrozen(selectedPrivateKeyHex, tokenAddress),
+      ])
+
+      return {
+        pending,
+        actual,
+        isRegistered,
+        isNormalized,
+        isFrozen,
+      }
+    }
 
     return {
-      pending,
-      actual,
+      pending: undefined,
+      actual: undefined,
       isRegistered,
-      isNormalized,
-      isFrozen,
+      isNormalized: undefined,
+      isFrozen: undefined,
     }
   })
 

@@ -5526,6 +5526,7 @@ __metadata:
     jest-junit: "npm:^16.0.0"
     jsona: "npm:^1.12.1"
     lodash: "npm:^4.17.21"
+    lottie-react-native: "npm:^7.1.0"
     mrz: "npm:^4.2.0"
     nativewind: "npm:4.1.21"
     np: "npm:^10.0.7"
@@ -13226,6 +13227,23 @@ __metadata:
   bin:
     loose-envify: cli.js
   checksum: 10/6517e24e0cad87ec9888f500c5b5947032cdfe6ef65e1c1936a0c48a524b81e65542c9c3edc91c97d5bddc806ee2a985dbc79be89215d613b1de5db6d1cfe6f4
+  languageName: node
+  linkType: hard
+
+"lottie-react-native@npm:^7.1.0":
+  version: 7.1.0
+  resolution: "lottie-react-native@npm:7.1.0"
+  peerDependencies:
+    "@lottiefiles/dotlottie-react": ^0.6.5
+    react: "*"
+    react-native: ">=0.46"
+    react-native-windows: ">=0.63.x"
+  peerDependenciesMeta:
+    "@lottiefiles/dotlottie-react":
+      optional: true
+    react-native-windows:
+      optional: true
+  checksum: 10/ea83db89ccce8aa3752777b1f66119b50f8cbb30b8fe75881ad3106c48a52f4093b404f59de70401c10ea8b9537680cb5e2c2109324ab3ce97121821282e63b8
   languageName: node
   linkType: hard
 

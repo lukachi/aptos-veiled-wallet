@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native'
+import LottieView from 'lottie-react-native'
 import { useCallback, useEffect, useMemo } from 'react'
 import type { ViewProps } from 'react-native'
 import { Text, View } from 'react-native'
@@ -14,7 +15,6 @@ import {
   UiButton,
   UiCard,
   UiHorizontalDivider,
-  UiIcon,
   UiScreenScrollable,
 } from '@/ui'
 
@@ -94,7 +94,15 @@ export default function CreateWallet({ route }: Props) {
         </View>
         <View className='flex flex-1 flex-col px-5'>
           <View className='my-auto flex flex-col items-center gap-4'>
-            <UiIcon customIcon='starFillIcon' className='size-[140] text-primaryMain' />
+            <View className='size-[300]'>
+              <LottieView
+                source={require('@assets/images/crypto-2-animation.json')}
+                style={{ width: '100%', height: '100%' }}
+                autoPlay
+                loop
+              />
+            </View>
+            {/*<UiIcon customIcon='starFillIcon' className='size-[140] text-primaryMain' />*/}
             <Text className='text-textPrimary typography-h4'>Your keys</Text>
           </View>
           <UiCard className={cn('mt-5 flex gap-4')}>
