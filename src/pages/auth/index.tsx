@@ -2,7 +2,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack'
 
 import type { AuthStackParamsList, RootStackScreenProps } from '@/route-types'
 
-import { CreateWallet, Intro } from './components'
+import { CreateWallet, Intro } from './pages'
 
 const Stack = createNativeStackNavigator<AuthStackParamsList>()
 

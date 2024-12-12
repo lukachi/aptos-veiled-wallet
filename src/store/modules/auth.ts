@@ -55,7 +55,10 @@ const useAuthStore = create(
         state?.setHasHydrated(true)
       },
 
-      partialize: state => ({ accessToken: state.accessToken, refreshToken: state.refreshToken }),
+      partialize: state => ({
+        accessToken: state.accessToken,
+        refreshToken: state.refreshToken,
+      }),
     },
   ),
 )

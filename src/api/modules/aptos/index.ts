@@ -24,9 +24,13 @@ const APTOS_NETWORK: Network = NetworkToNetworkName[Network.TESTNET]
 const config = new AptosConfig({ network: APTOS_NETWORK })
 export const aptos = new Aptos(config)
 
-const accountFromPrivateKey = (privateKeyHex: string) => {
+export const accountFromPrivateKey = (privateKeyHex: string) => {
+  const sanitizedPrivateKeyHex = privateKeyHex.startsWith('0x')
+    ? privateKeyHex.slice(2)
+    : privateKeyHex
+
   return Account.fromPrivateKey({
-    privateKey: new Ed25519PrivateKey(privateKeyHex),
+    privateKey: new Ed25519PrivateKey(sanitizedPrivateKeyHex),
   })
 }
 
@@ -285,7 +289,7 @@ export const getVeiledBalances = async (
   }
 }
 
-export const generatePrivateKey = () => {
+export const generatePrivateKeyHex = () => {
   const account = Account.generate()
 
   return account.privateKey.toString()

@@ -1,11 +1,11 @@
 import { useNavigation } from '@react-navigation/native'
-import { useCallback, useMemo } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import type { ViewProps } from 'react-native'
 import { Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { ErrorHandler } from '@/core'
-import { useCopyToClipboard, useForm, useLoading } from '@/hooks'
+import { useCopyToClipboard, useForm } from '@/hooks'
 import type { AuthStackScreenProps } from '@/route-types'
 import { authStore, walletStore } from '@/store'
 import { cn } from '@/theme'
@@ -65,23 +65,15 @@ export default function CreateWallet({ route }: Props) {
     [fetchFromClipboard, setValue],
   )
 
-  useLoading(
-    false,
-    async () => {
-      if (isImporting) {
-        return true
-      }
+  useEffect(() => {
+    if (isImporting) return
 
-      const privateKey = walletStore.generatePrivateKey()
+    const privateKey = walletStore.generatePrivateKeyHex()
 
-      setValue('privateKey', privateKey)
+    setValue('privateKey', privateKey)
 
-      return true
-    },
-    {
-      loadOnMount: true,
-    },
-  )
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [])
 
   return (
     <UiScreenScrollable>
