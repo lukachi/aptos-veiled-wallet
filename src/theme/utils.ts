@@ -4,7 +4,6 @@ import { colorScheme, useColorScheme } from 'nativewind'
 import React from 'react'
 import { Platform } from 'react-native'
 import { useMMKVString } from 'react-native-mmkv'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { extendTailwindMerge } from 'tailwind-merge'
 
 import { storage } from '@/core/storage'
@@ -94,9 +93,7 @@ export const useAppPaddings = () => {
 export const useBottomBarOffset = () => {
   const bottomBarHeight = useBottomTabBarHeight()
 
-  const insets = useSafeAreaInsets()
-
   const barPaddingTop = Platform.OS === 'ios' ? 16 : 32
 
-  return bottomBarHeight + insets.bottom + barPaddingTop
+  return bottomBarHeight + barPaddingTop
 }

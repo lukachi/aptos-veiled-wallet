@@ -29,8 +29,6 @@ function AppTabs({}: AppStackScreenProps<'Tabs'>) {
           position: 'absolute',
           bottom: 0,
           left: 0,
-          paddingLeft: left,
-          paddingRight: right,
         },
       }}
       initialRouteName={'Home'}

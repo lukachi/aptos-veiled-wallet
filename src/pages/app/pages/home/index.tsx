@@ -1,3 +1,4 @@
+import { time } from '@distributedlab/tools'
 import { type ReactElement, useCallback } from 'react'
 import { Text, TouchableOpacity, type TouchableOpacityProps, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -6,7 +7,7 @@ import type { AppTabScreenProps } from '@/route-types'
 import { cn, useAppPaddings, useBottomBarOffset } from '@/theme'
 import { UiHorizontalDivider, UiIcon, UiScreenScrollable } from '@/ui'
 
-import { VBCard } from './components'
+import { TxItem, VBCard } from './components'
 
 export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
   const insets = useSafeAreaInsets()
@@ -129,6 +130,16 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
             </View>
 
             <UiHorizontalDivider className='my-4' />
+
+            <View className='flex gap-6'>
+              <TxItem txType='transfer' createdAt={time().timestamp} />
+              <TxItem txType='deposit' createdAt={time().timestamp} />
+              <TxItem txType='withdraw' createdAt={time().timestamp} />
+              <TxItem txType='rollover' createdAt={time().timestamp} />
+              <TxItem txType='key-rotation' createdAt={time().timestamp} />
+              <TxItem txType='freeze' createdAt={time().timestamp} />
+              <TxItem txType='unfreeze' createdAt={time().timestamp} />
+            </View>
           </View>
         </View>
       </View>
