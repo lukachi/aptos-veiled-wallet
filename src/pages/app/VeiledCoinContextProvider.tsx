@@ -39,7 +39,7 @@ type VeiledCoinContextType = {
   removeAccount: (privateKeyHex: string) => void
 
   tokens: TokenBaseInfo[]
-  selectedTokenAddress: string
+  selectedToken: TokenBaseInfo
 
   addToken: (token: TokenBaseInfo) => void
   removeToken: (address: string) => void
@@ -66,7 +66,7 @@ const veiledCoinContext = createContext<VeiledCoinContextType>({
   removeAccount: () => {},
 
   tokens: [],
-  selectedTokenAddress: '',
+  selectedToken: Config.DEFAULT_TOKEN as TokenBaseInfo,
   txHistory: [],
 
   addToken: () => {},
@@ -181,7 +181,7 @@ const useTokens = (decryptionKeyHex: string | undefined) => {
   const selectedToken = useMemo(() => {
     if (!decryptionKeyHex || !tokens.length) return Config.DEFAULT_TOKEN
 
-    return tokens.find(token => token.address === selectedTokenAddress)
+    return tokens.find(token => token.address === selectedTokenAddress) || Config.DEFAULT_TOKEN
   }, [decryptionKeyHex, tokens, selectedTokenAddress])
 
   const txHistory = useMemo(() => {
@@ -324,7 +324,7 @@ export const VeiledCoinContextProvider = ({ children }: PropsWithChildren) => {
     rolloverAccount,
   } = useSelectedAccountDecryptionKeyStatus(
     selectedAccountDecryptionKey.toString(),
-    selectedToken?.address,
+    selectedToken.address,
   )
 
   return (
@@ -338,7 +338,7 @@ export const VeiledCoinContextProvider = ({ children }: PropsWithChildren) => {
         removeAccount,
 
         tokens,
-        selectedTokenAddress: selectedToken?.address ?? '',
+        selectedToken,
         txHistory,
         addToken,
         removeToken,

@@ -8,7 +8,7 @@ import type { AppTabScreenProps } from '@/route-types'
 import { cn, useAppPaddings, useBottomBarOffset } from '@/theme'
 import { UiHorizontalDivider, UiIcon, UiScreenScrollable } from '@/ui'
 
-import { TxItem, VBCard } from './components'
+import { ActionCircleButton, TxItem, VBCard } from './components'
 
 export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
   const insets = useSafeAreaInsets()
@@ -18,6 +18,8 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const {
+    selectedToken,
+
     selectedAccountDecryptionKey,
     selectedAccountDecryptionKeyStatus,
 
@@ -28,7 +30,6 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
 
     loadSelectedDecryptionKeyState,
 
-    selectedTokenAddress,
     txHistory,
   } = useVeiledCoinContext()
 
@@ -59,13 +60,13 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
   const tryRegister = useCallback(async () => {
     setIsSubmitting(true)
     try {
-      await registerAccountEncryptionKey(selectedTokenAddress)
+      await registerAccountEncryptionKey(selectedToken.address)
       await loadSelectedDecryptionKeyState()
     } catch (error) {
       ErrorHandler.process(error)
     }
     setIsSubmitting(false)
-  }, [loadSelectedDecryptionKeyState, registerAccountEncryptionKey, selectedTokenAddress])
+  }, [loadSelectedDecryptionKeyState, registerAccountEncryptionKey, selectedToken])
 
   const tryNormalize = useCallback(async () => {
     setIsSubmitting(true)
@@ -88,12 +89,14 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
       >
         <VBCard
           className='flex gap-4'
+          token={selectedToken}
           encryptionKey={selectedAccountDecryptionKey.publicKey().toString()}
           pendingAmount={selectedAccountDecryptionKeyStatus.pendingAmount}
           actualAmount={selectedAccountDecryptionKeyStatus.actualAmount}
           isNormalized={selectedAccountDecryptionKeyStatus.isNormalized}
           isFrozen={selectedAccountDecryptionKeyStatus.isFrozen}
           isRegistered={selectedAccountDecryptionKeyStatus.isRegistered}
+          onRollover={tryRollover}
         />
         <UiHorizontalDivider className='my-4' />
 
@@ -208,26 +211,6 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
         </View>
       </View>
     </UiScreenScrollable>
-  )
-}
-
-function ActionCircleButton({
-  children,
-  caption,
-  disabled,
-  ...rest
-}: TouchableOpacityProps & { caption?: string }) {
-  return (
-    <TouchableOpacity
-      {...rest}
-      className={cn('flex items-center gap-2', rest.className, disabled && 'opacity-50')}
-      disabled={disabled}
-    >
-      <View className='flex size-[56] items-center justify-center rounded-full bg-componentPrimary'>
-        {children}
-      </View>
-      {caption && <Text className='text-textPrimary'>{caption}</Text>}
-    </TouchableOpacity>
   )
 }
 

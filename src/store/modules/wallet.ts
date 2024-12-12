@@ -10,7 +10,7 @@ export type TokenBaseInfo = {
   address: string
   name: string
   symbol: string
-  decimals: string
+  decimals: number
   iconUri: string
 }
 

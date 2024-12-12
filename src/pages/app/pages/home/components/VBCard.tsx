@@ -2,10 +2,13 @@ import { useMemo } from 'react'
 import { Text, TouchableOpacity, View, type ViewProps } from 'react-native'
 
 import { useCopyToClipboard } from '@/hooks'
+import { ActionCircleButton } from '@/pages/app/pages/home/components/index'
+import type { TokenBaseInfo } from '@/store'
 import { cn } from '@/theme'
 import { UiCard, UiIcon } from '@/ui'
 
 type Props = {
+  token: TokenBaseInfo
   encryptionKey: string
 
   pendingAmount: string
@@ -14,6 +17,8 @@ type Props = {
   isNormalized: boolean
   isFrozen: boolean
   isRegistered: boolean
+
+  onRollover: () => Promise<void>
 } & ViewProps
 
 export default function VBCard({
@@ -23,6 +28,9 @@ export default function VBCard({
   isNormalized,
   isFrozen,
   isRegistered,
+
+  onRollover,
+
   ...rest
 }: Props) {
   const VBStatusContent = useMemo(() => {
@@ -68,13 +76,27 @@ export default function VBCard({
     <View className='relative'>
       {VBStatusContent}
       <UiCard {...rest} className={cn('z-20', rest.className)}>
-        <View className='flex items-center gap-1 self-center'>
-          <Text className='text-textSecondary typography-caption1'>
-            Pending / <Text className='text-textPrimary'>Actual</Text>
-          </Text>
-          <Text className='text-textPrimary typography-subtitle1'>
-            <Text className='text-textSecondary'>{pendingAmount}</Text> / {actualAmount}
-          </Text>
+        <View className='flex flex-row items-center'>
+          <View className='flex gap-1'>
+            <Text className='text-textSecondary typography-caption1'>
+              Pending / <Text className='text-textPrimary'>Actual</Text>
+            </Text>
+            <Text className='text-textPrimary typography-subtitle1'>
+              <Text className='text-textSecondary'>{pendingAmount}</Text> / {actualAmount}
+            </Text>
+          </View>
+
+          {/*TODO: isNaN*/}
+          {Boolean(+pendingAmount) && (
+            <ActionCircleButton caption='rollover' className='ml-auto' onPress={onRollover}>
+              <UiIcon
+                libIcon={'AntDesign'}
+                name={'sync'}
+                size={16}
+                className={'text-textPrimary'}
+              />
+            </ActionCircleButton>
+          )}
         </View>
 
         <CopyField label='Encryption Key' text={encryptionKey} className='' />
