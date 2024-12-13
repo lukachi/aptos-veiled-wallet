@@ -1,5 +1,10 @@
 import ExpoModulesCore
 
+struct RangeProofResult: Codable {
+    let proof: [UInt8]
+    let commitment: [UInt8]
+}
+
 public class RangeProofModule: Module {
   // Each module class must implement the definition function. The definition consists of components
   // that describes the module's functionality and behavior.
@@ -10,39 +15,47 @@ public class RangeProofModule: Module {
     // The module will be accessible from `requireNativeModule('RangeProof')` in JavaScript.
     Name("RangeProof")
 
-    // Sets constant properties on the module. Can take a dictionary or a closure that returns a dictionary.
-    Constants([
-      "PI": Double.pi
-    ])
+    AsyncFunction("genRangeProof") { (
+      v: UInt64,
+      r: Data,
+      valBase: Data,
+      randBase: Data,
+      numBits: UInt64
+    ) in
+      print("Start genRangeProof")
+      let result = try rangeProof(
+        v: v,
+        r: r,
+        valBase: valBase,
+        randBase: randBase,
+        numBits: numBits
+      )
+      
+      let comm = result.comm()
+      print("Comm length: \(comm.count), Data: \(comm)")
 
-    // Defines event names that the module can send to JavaScript.
-    Events("onChange")
+      let proof = result.proof()
+      print("Proof length: \(proof.count), Data: \(proof)")
 
-    // Defines a JavaScript synchronous function that runs the native code on the JavaScript thread.
-    Function("hello") {
-      return "Hello world! 👋"
+      let rangeProofResult = RangeProofResult(
+          proof: Array(proof),
+          commitment: Array(comm)
+      )
+
+      let resultData = try JSONEncoder().encode(rangeProofResult)
+      print("Encoded Result: \(String(data: resultData, encoding: .utf8)!)")
+
+      return resultData
     }
 
-    // Defines a JavaScript function that always returns a Promise and whose native code
-    // is by default dispatched on the different thread than the JavaScript runtime runs on.
-    AsyncFunction("setValueAsync") { (value: String) in
-      // Send an event to JavaScript.
-      self.sendEvent("onChange", [
-        "value": value
-      ])
-    }
-
-    // Enables the module to be used as a native view. Definition components that are accepted as part of the
-    // view definition: Prop, Events.
-    View(RangeProofView.self) {
-      // Defines a setter for the `url` prop.
-      Prop("url") { (view: RangeProofView, url: URL) in
-        if view.webView.url != url {
-          view.webView.load(URLRequest(url: url))
-        }
-      }
-
-      Events("onLoad")
+    AsyncFunction("verifyRangeProof") { (proof: Data, comm: Data, valBase: Data, randBase: Data, numBits: UInt64) in
+      return try verifyProof(
+        proof: proof,
+        comm: comm,
+        valBase: valBase,
+        randBase: randBase,
+        numBits: numBits
+      )
     }
   }
 }

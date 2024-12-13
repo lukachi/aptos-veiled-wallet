@@ -44,9 +44,16 @@ export const testWithdrawProof = async () => {
       amountToWithdraw: WITHDRAW_AMOUNT,
     })
 
+    const sigmaProofStartTime = performance.now()
     const sigmaProof = await veiledWithdraw.genSigmaProof()
+    const sigmaProofStartTimeEnd = performance.now()
 
+    const rangeProofStartTime = performance.now()
     const rangeProof = await veiledWithdraw.genRangeProof()
+    const rangeProofStartTimeEnd = performance.now()
+
+    console.log('sigmaProofStartTime', sigmaProofStartTimeEnd - sigmaProofStartTime)
+    console.log('rangeProofStartTime', rangeProofStartTimeEnd - rangeProofStartTime)
 
     console.log({ rangeProof, sigmaProof })
 

@@ -1,3 +1,6 @@
+import { Buffer } from 'buffer'
+import { Platform } from 'react-native'
+
 import RangeProofModule from './src/RangeProofModule'
 
 export async function genRangeProof(opts: {
@@ -10,14 +13,21 @@ export async function genRangeProof(opts: {
   proof: Uint8Array
   commitment: Uint8Array
 }> {
-  console.log('opts', { ...opts, v: +opts.v.toString() })
-  return await RangeProofModule.genRangeProof(
+  const result = await RangeProofModule.genRangeProof(
     +opts.v.toString(),
     new Uint8Array(opts.r),
     new Uint8Array(opts.valBase),
     new Uint8Array(opts.randBase),
     opts.bits || 32,
   )
+
+  if (Platform.OS === 'ios') {
+    const jsonStringified = Buffer.from(result).toString()
+
+    return JSON.parse(jsonStringified)
+  }
+
+  return result
 }
 
 export async function verifyRangeProof(opts: {
