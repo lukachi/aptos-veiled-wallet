@@ -8,13 +8,16 @@ import {
   type InputGenerateTransactionPayloadData,
   Network,
   NetworkToNetworkName,
+  RangeProofExecutor,
   TransactionWorkerEventsEnum,
   TwistedEd25519PrivateKey,
   TwistedEd25519PublicKey,
   type TwistedElGamalCiphertext,
   VeiledAmount,
   VeiledCoin,
+  VeiledWithdraw,
 } from '@aptos-labs/ts-sdk'
+import { genRangeProof, verifyRangeProof } from '@modules/range-proof'
 
 import { apiClient } from '@/api/client'
 import { Config } from '@/config'
@@ -23,6 +26,49 @@ import { sleep } from '@/helpers'
 const APTOS_NETWORK: Network = NetworkToNetworkName[Network.TESTNET]
 const config = new AptosConfig({ network: APTOS_NETWORK })
 export const aptos = new Aptos(config)
+
+RangeProofExecutor.setGenerateRangeZKP(genRangeProof)
+RangeProofExecutor.setVerifyRangeZKP(verifyRangeProof)
+
+export const testWithdrawProof = async () => {
+  try {
+    const aliceDecryptionKey = TwistedEd25519PrivateKey.generate()
+
+    const aliceVB = VeiledAmount.fromAmount(25n)
+    aliceVB.encrypt(aliceDecryptionKey.publicKey())
+
+    const WITHDRAW_AMOUNT = 2n
+    const veiledWithdraw = await VeiledWithdraw.create({
+      decryptionKey: aliceDecryptionKey,
+      encryptedActualBalance: aliceVB.amountEncrypted!,
+      amountToWithdraw: WITHDRAW_AMOUNT,
+    })
+
+    const sigmaProof = await veiledWithdraw.genSigmaProof()
+
+    const rangeProof = await veiledWithdraw.genRangeProof()
+
+    console.log({ rangeProof, sigmaProof })
+
+    console.log({
+      verifyRangeProof: await VeiledWithdraw.verifyRangeProof({
+        rangeProof: rangeProof,
+        encryptedActualBalanceAfterWithdraw:
+          veiledWithdraw.veiledAmountAfterWithdraw.amountEncrypted!,
+      }),
+      verifySigmaProof: VeiledWithdraw.verifySigmaProof({
+        amountToWithdraw: WITHDRAW_AMOUNT,
+        encryptedActualBalance: veiledWithdraw.encryptedActualBalanceAmount,
+        encryptedActualBalanceAfterWithdraw:
+          veiledWithdraw.veiledAmountAfterWithdraw.amountEncrypted!,
+        publicKey: aliceDecryptionKey.publicKey(),
+        sigmaProof: sigmaProof,
+      }),
+    })
+  } catch (error) {
+    console.log({ error })
+  }
+}
 
 export const accountFromPrivateKey = (privateKeyHex: string) => {
   const sanitizedPrivateKeyHex = privateKeyHex.startsWith('0x')

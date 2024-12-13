@@ -2,6 +2,7 @@ import { type ReactElement, useCallback, useState } from 'react'
 import { Text, TouchableOpacity, type TouchableOpacityProps, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
+import { testWithdrawProof } from '@/api/modules/aptos'
 import { ErrorHandler } from '@/core'
 import { useVeiledCoinContext } from '@/pages/app/VeiledCoinContextProvider'
 import type { AppTabScreenProps } from '@/route-types'
@@ -123,6 +124,15 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
               name={'arrowright'}
               size={32}
               className={'text-textPrimary'}
+            />
+          </ActionCircleButton>
+          <ActionCircleButton caption='Test' disabled={isActionsDisabled}>
+            <UiIcon
+              libIcon={'AntDesign'}
+              name={'setting'}
+              size={32}
+              className={'text-textPrimary'}
+              onPress={testWithdrawProof}
             />
           </ActionCircleButton>
         </View>

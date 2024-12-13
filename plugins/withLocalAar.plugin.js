@@ -9,9 +9,7 @@ const withCustomRootBuildGradle = config => {
     allprojects {
         repositories {
             flatDir {
-                dirs project(':some-module').projectDir.absolutePath + '/libs'
-                dirs project(':some-module').projectDir.absolutePath + '/libs'
-                dirs project(':some-module').projectDir.absolutePath + '/libs'
+                dirs project(':range-proof').projectDir.absolutePath + '/libs'
             }
         }
     }
