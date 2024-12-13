@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { generatePrivateKeyHex, validatePrivateKeyHex } from '@/api/modules/aptos'
 import { ErrorHandler } from '@/core'
+import { formatAmount } from '@/helpers'
 import { useCopyToClipboard, useForm } from '@/hooks'
 import { useVeiledCoinContext } from '@/pages/app/VeiledCoinContextProvider'
 import type { AppTabScreenProps } from '@/route-types'
@@ -57,6 +58,8 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
     txHistory,
 
     testMintTokens,
+
+    reloadAptBalance,
   } = useVeiledCoinContext()
 
   const transferBottomSheet = useTransferBottomSheet()
@@ -68,68 +71,73 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
     setIsSubmitting(true)
     try {
       await rolloverAccount()
-      await loadSelectedDecryptionKeyState()
+      await Promise.all([loadSelectedDecryptionKeyState(), reloadAptBalance()])
     } catch (error) {
       ErrorHandler.process(error)
     }
     setIsSubmitting(false)
-  }, [loadSelectedDecryptionKeyState, rolloverAccount])
+  }, [loadSelectedDecryptionKeyState, reloadAptBalance, rolloverAccount])
 
   const tryUnfreeze = useCallback(async () => {
     setIsSubmitting(true)
     try {
       await unfreezeAccount()
-      await loadSelectedDecryptionKeyState()
+      await Promise.all([loadSelectedDecryptionKeyState(), reloadAptBalance()])
     } catch (error) {
       ErrorHandler.process(error)
     }
     setIsSubmitting(false)
-  }, [loadSelectedDecryptionKeyState, unfreezeAccount])
+  }, [loadSelectedDecryptionKeyState, reloadAptBalance, unfreezeAccount])
 
   const tryRegister = useCallback(async () => {
     setIsSubmitting(true)
     try {
       await registerAccountEncryptionKey(selectedToken.address)
-      await loadSelectedDecryptionKeyState()
+      await Promise.all([loadSelectedDecryptionKeyState(), reloadAptBalance()])
     } catch (error) {
       ErrorHandler.process(error)
     }
     setIsSubmitting(false)
-  }, [loadSelectedDecryptionKeyState, registerAccountEncryptionKey, selectedToken])
+  }, [
+    loadSelectedDecryptionKeyState,
+    registerAccountEncryptionKey,
+    reloadAptBalance,
+    selectedToken.address,
+  ])
 
   const tryNormalize = useCallback(async () => {
     setIsSubmitting(true)
     try {
       await normalizeAccount()
-      await loadSelectedDecryptionKeyState()
+      await Promise.all([loadSelectedDecryptionKeyState(), reloadAptBalance()])
     } catch (error) {
       ErrorHandler.process(error)
     }
     setIsSubmitting(false)
-  }, [loadSelectedDecryptionKeyState, normalizeAccount])
+  }, [loadSelectedDecryptionKeyState, normalizeAccount, reloadAptBalance])
 
   const tryTransfer = useCallback(
     async (receiverAddress: string, amount: number) => {
       try {
         await transfer(receiverAddress, amount)
-        await loadSelectedDecryptionKeyState()
+        await Promise.all([loadSelectedDecryptionKeyState(), reloadAptBalance()])
       } catch (error) {
         ErrorHandler.process(error)
       }
     },
-    [loadSelectedDecryptionKeyState, transfer],
+    [loadSelectedDecryptionKeyState, reloadAptBalance, transfer],
   )
 
   const tryWithdraw = useCallback(
     async (amount: number) => {
       try {
         await withdraw(amount)
-        await loadSelectedDecryptionKeyState()
+        await Promise.all([loadSelectedDecryptionKeyState(), reloadAptBalance()])
       } catch (error) {
         ErrorHandler.process(error)
       }
     },
-    [loadSelectedDecryptionKeyState, withdraw],
+    [loadSelectedDecryptionKeyState, reloadAptBalance, withdraw],
   )
 
   const tryTestMint = useCallback(async () => {
@@ -319,8 +327,14 @@ function ActionCard({
 function HomeHeader({ className, ...rest }: ViewProps) {
   const insets = useSafeAreaInsets()
   const appPaddings = useAppPaddings()
-  const { accountsList, selectedAccount, setSelectedAccount, addNewAccount, removeAccount } =
-    useVeiledCoinContext()
+  const {
+    accountsList,
+    selectedAccount,
+    setSelectedAccount,
+    addNewAccount,
+    removeAccount,
+    aptBalance,
+  } = useVeiledCoinContext()
 
   const accountsBottomSheet = useUiBottomSheet()
   const addAccountBottomSheet = useUiBottomSheet()
@@ -335,7 +349,21 @@ function HomeHeader({ className, ...rest }: ViewProps) {
   )
 
   return (
-    <View {...rest} className={cn('flex flex-row items-center', className)}>
+    <View
+      {...rest}
+      className={cn('flex flex-row items-center', className)}
+      style={{
+        paddingLeft: appPaddings.left,
+        paddingRight: appPaddings.right,
+      }}
+    >
+      <UiIcon
+        libIcon={'MaterialCommunityIcons'}
+        name={'format-letter-starts-with'}
+        size={24}
+        className={'text-textPrimary'}
+      />
+
       <TouchableOpacity className='mx-auto' onPress={() => accountsBottomSheet.present()}>
         <View className='flex flex-row items-center gap-2'>
           <Text className='line-clamp-1 max-w-[150] text-center uppercase text-textPrimary'>
@@ -350,6 +378,19 @@ function HomeHeader({ className, ...rest }: ViewProps) {
           />
         </View>
       </TouchableOpacity>
+
+      <View className='flex flex-row items-center gap-2'>
+        <Text className='uppercase text-textPrimary typography-caption1'>
+          {formatAmount(aptBalance, 8)}
+        </Text>
+
+        <UiIcon
+          libIcon={'MaterialCommunityIcons'}
+          name={'format-letter-matches'}
+          className='text-textPrimary'
+          size={18}
+        />
+      </View>
 
       <UiBottomSheet title='Accounts' ref={accountsBottomSheet.ref} snapPoints={['75%']}>
         <BottomSheetView

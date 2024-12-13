@@ -1,13 +1,13 @@
 import type { Account } from '@aptos-labs/ts-sdk'
 import { TwistedEd25519PrivateKey } from '@aptos-labs/ts-sdk'
 import type { PropsWithChildren } from 'react'
-import { useEffect } from 'react'
 import { useCallback } from 'react'
 import { createContext, useContext, useMemo } from 'react'
 
 import {
   accountFromPrivateKey,
   depositVeiledBalance,
+  getAptBalance,
   getIsAccountRegisteredWithToken,
   getIsBalanceFrozen,
   getIsBalanceNormalized,
@@ -44,6 +44,9 @@ type VeiledCoinContextType = {
   removeAccount: (accountAddress: string) => void
   setSelectedAccount: (accountAddressHex: string) => void
 
+  aptBalance: number
+  reloadAptBalance: () => Promise<void>
+
   tokens: TokenBaseInfo[]
   selectedToken: TokenBaseInfo
 
@@ -76,6 +79,9 @@ const veiledCoinContext = createContext<VeiledCoinContextType>({
   addNewAccount: () => {},
   removeAccount: () => {},
   setSelectedAccount: () => {},
+
+  aptBalance: 0,
+  reloadAptBalance: async () => {},
 
   tokens: [],
   selectedToken: Config.DEFAULT_TOKEN as TokenBaseInfo,
@@ -121,6 +127,14 @@ const useAccounts = () => {
     }))
 
   const selectedPrivateKeyHex = walletStore.useSelectedPrivateKeyHex()
+
+  const { data: aptBalance, reload } = useLoading(
+    0,
+    () => {
+      return getAptBalance(selectedPrivateKeyHex)
+    },
+    { loadArgs: [selectedPrivateKeyHex] },
+  )
 
   const accountsList = useMemo(
     () =>
@@ -188,6 +202,9 @@ const useAccounts = () => {
     setSelectedAccount,
     addNewAccount,
     removeAccount,
+
+    aptBalance,
+    reloadAptBalance: reload,
   }
 }
 
@@ -320,12 +337,6 @@ const useSelectedAccountDecryptionKeyStatus = (
     },
   )
 
-  useEffect(() => {
-    reload()
-
-    /*eslint-disable-next-line react-hooks/exhaustive-deps*/
-  }, [selectedPrivateKeyHex])
-
   const selectedAccountDecryptionKeyStatus = {
     isFrozen: data?.isFrozen ?? false,
     isNormalized: data?.isNormalized ?? false,
@@ -386,8 +397,15 @@ const useSelectedAccountDecryptionKeyStatus = (
 }
 
 export const VeiledCoinContextProvider = ({ children }: PropsWithChildren) => {
-  const { accountsList, selectedAccount, setSelectedAccount, addNewAccount, removeAccount } =
-    useAccounts()
+  const {
+    accountsList,
+    selectedAccount,
+    setSelectedAccount,
+    addNewAccount,
+    removeAccount,
+    aptBalance,
+    reloadAptBalance,
+  } = useAccounts()
 
   const { selectedAccountDecryptionKey, registerAccountEncryptionKey } =
     useSelectedAccountDecryptionKey()
@@ -477,6 +495,9 @@ export const VeiledCoinContextProvider = ({ children }: PropsWithChildren) => {
         setSelectedAccount,
         addNewAccount,
         removeAccount,
+
+        aptBalance,
+        reloadAptBalance,
 
         tokens,
         selectedToken,

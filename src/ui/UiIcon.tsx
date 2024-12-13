@@ -1,6 +1,7 @@
 import AntDesign from '@expo/vector-icons/AntDesign'
 import type { Icon, IconProps } from '@expo/vector-icons/build/createIconSet'
 import FontAwesome from '@expo/vector-icons/FontAwesome'
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons'
@@ -104,6 +105,7 @@ const ICON_COMPONENTS = {
   MaterialCommunityIcons,
   AntDesign,
   FontAwesome,
+  FontAwesome6,
   SimpleLineIcons,
   Ionicons,
 }
