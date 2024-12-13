@@ -7,11 +7,15 @@ import { AvoidSoftInput } from 'react-native-avoid-softinput'
  *  This is not a one for all solution, if you want more customization please refer to those examples: https://mateusz1913.github.io/react-native-avoid-softinput/docs/recipes/recipes-form
  */
 
-export const useSoftKeyboardEffect = () => {
+export const useSoftKeyboardEffect = (avoidOffset = 50) => {
   useFocusEffect(() => {
     AvoidSoftInput.setShouldMimicIOSBehavior(true)
     AvoidSoftInput.setEnabled(true)
-    // AvoidSoftInput.setAvoidOffset(30);
+
+    if (avoidOffset) {
+      AvoidSoftInput.setAvoidOffset(avoidOffset)
+    }
+
     AvoidSoftInput.setShowAnimationDelay(0)
     AvoidSoftInput.setShowAnimationDuration(150)
     AvoidSoftInput.setHideAnimationDuration(150)

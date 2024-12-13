@@ -1,9 +1,11 @@
+import { time } from '@distributedlab/tools'
 import type { BottomSheetModal } from '@gorhom/bottom-sheet'
 import { BottomSheetScrollView, BottomSheetView } from '@gorhom/bottom-sheet'
 import type { ComponentProps } from 'react'
 import { forwardRef, type ReactElement, useCallback, useImperativeHandle, useState } from 'react'
 import type { ViewProps } from 'react-native'
 import {
+  KeyboardAvoidingView,
   RefreshControl,
   Text,
   TouchableOpacity,
@@ -13,7 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { generatePrivateKeyHex, validatePrivateKeyHex } from '@/api/modules/aptos'
-import { ErrorHandler } from '@/core'
+import { ErrorHandler, useSoftKeyboardEffect } from '@/core'
 import { formatAmount } from '@/helpers'
 import { useCopyToClipboard, useForm } from '@/hooks'
 import { useVeiledCoinContext } from '@/pages/app/VeiledCoinContextProvider'
@@ -63,6 +65,7 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
     loadSelectedDecryptionKeyState,
 
     txHistory,
+    addTxHistoryItem,
 
     testMintTokens,
 
@@ -93,51 +96,71 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
     setIsSubmitting(true)
     try {
       await rolloverAccount()
+      addTxHistoryItem({
+        txType: 'rollover',
+        createdAt: time().timestamp,
+      })
       await tryRefresh()
     } catch (error) {
       ErrorHandler.process(error)
     }
     setIsSubmitting(false)
-  }, [rolloverAccount, tryRefresh])
+  }, [addTxHistoryItem, rolloverAccount, tryRefresh])
 
   const tryUnfreeze = useCallback(async () => {
     setIsSubmitting(true)
     try {
       await unfreezeAccount()
+      addTxHistoryItem({
+        txType: 'unfreeze',
+        createdAt: time().timestamp,
+      })
       await tryRefresh()
     } catch (error) {
       ErrorHandler.process(error)
     }
     setIsSubmitting(false)
-  }, [tryRefresh, unfreezeAccount])
+  }, [addTxHistoryItem, tryRefresh, unfreezeAccount])
 
   const tryRegister = useCallback(async () => {
     setIsSubmitting(true)
     try {
       await registerAccountEncryptionKey(selectedToken.address)
+      addTxHistoryItem({
+        txType: 'register',
+        createdAt: time().timestamp,
+      })
       await tryRefresh()
     } catch (error) {
       ErrorHandler.process(error)
     }
     setIsSubmitting(false)
-  }, [registerAccountEncryptionKey, selectedToken.address, tryRefresh])
+  }, [addTxHistoryItem, registerAccountEncryptionKey, selectedToken.address, tryRefresh])
 
   const tryNormalize = useCallback(async () => {
     setIsSubmitting(true)
     try {
       await normalizeAccount()
+      addTxHistoryItem({
+        txType: 'normalize',
+        createdAt: time().timestamp,
+      })
       await tryRefresh()
     } catch (error) {
       ErrorHandler.process(error)
     }
     setIsSubmitting(false)
-  }, [normalizeAccount, tryRefresh])
+  }, [addTxHistoryItem, normalizeAccount, tryRefresh])
 
   const tryTransfer = useCallback(
     async (receiverAddress: string, amount: number) => {
       setIsSubmitting(true)
       try {
         await transfer(receiverAddress, amount)
+        addTxHistoryItem({
+          txType: 'transfer',
+          createdAt: time().timestamp,
+        })
         await tryRefresh()
         transferBottomSheet.dismiss()
       } catch (error) {
@@ -145,7 +168,7 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
       }
       setIsSubmitting(false)
     },
-    [transfer, transferBottomSheet, tryRefresh],
+    [addTxHistoryItem, transfer, transferBottomSheet, tryRefresh],
   )
 
   const tryWithdraw = useCallback(
@@ -153,6 +176,10 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
       setIsSubmitting(true)
       try {
         await withdraw(amount)
+        addTxHistoryItem({
+          txType: 'withdraw',
+          createdAt: time().timestamp,
+        })
         await tryRefresh()
         withdrawBottomSheet.dismiss()
       } catch (error) {
@@ -160,19 +187,23 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
       }
       setIsSubmitting(false)
     },
-    [tryRefresh, withdraw, withdrawBottomSheet],
+    [addTxHistoryItem, tryRefresh, withdraw, withdrawBottomSheet],
   )
 
   const tryTestMint = useCallback(async () => {
     setIsSubmitting(true)
     try {
       await testMintTokens()
+      addTxHistoryItem({
+        txType: 'mint',
+        createdAt: time().timestamp,
+      })
       await tryRefresh()
     } catch (error) {
       ErrorHandler.process(error)
     }
     setIsSubmitting(false)
-  }, [testMintTokens, tryRefresh])
+  }, [addTxHistoryItem, testMintTokens, tryRefresh])
 
   return (
     <UiScreenScrollable
@@ -573,10 +604,6 @@ const AddNewAccountBottomSheet = forwardRef<BottomSheetModal, AddNewAccountBotto
         }),
     )
 
-    useImperativeHandle(ref, () => (bottomSheet.ref.current as BottomSheetModal) || null, [
-      bottomSheet,
-    ])
-
     const submit = useCallback(
       () =>
         handleSubmit(formData => {
@@ -591,41 +618,54 @@ const AddNewAccountBottomSheet = forwardRef<BottomSheetModal, AddNewAccountBotto
       [disableForm, enableForm, handleSubmit, onSubmit],
     )
 
+    useImperativeHandle(ref, () => (bottomSheet.ref.current as BottomSheetModal) || null, [
+      bottomSheet,
+    ])
+
+    useSoftKeyboardEffect()
+
     return (
-      <UiBottomSheet {...rest} ref={bottomSheet.ref} title='Add Account' snapPoints={['50%']}>
+      <UiBottomSheet
+        {...rest}
+        ref={bottomSheet.ref}
+        title='Add Account'
+        snapPoints={['50%', '75%']}
+      >
         <BottomSheetView style={{ flex: 1, paddingBottom: insets.bottom }}>
-          <View
-            className='flex flex-1'
-            style={{
-              paddingLeft: appPaddings.left,
-              paddingRight: appPaddings.right,
-            }}
-          >
-            <UiHorizontalDivider className='my-4' />
+          <KeyboardAvoidingView>
+            <View
+              className='flex'
+              style={{
+                paddingLeft: appPaddings.left,
+                paddingRight: appPaddings.right,
+              }}
+            >
+              <UiHorizontalDivider className='my-4' />
 
-            <View className='flex gap-4'>
-              <ControlledUiTextField
-                control={control}
-                name={'privateKeyHex'}
-                label='Private Key'
-                placeholder='Enter private key'
-                disabled={isFormDisabled}
-              />
-            </View>
-
-            <View className='mt-auto pt-4'>
-              <UiHorizontalDivider className='mb-4' />
-              <View className='flex gap-3'>
-                <UiButton title='Import' onPress={submit} disabled={isFormDisabled} />
-                <UiButton
-                  title='Create New'
-                  variant='outlined'
-                  onPress={() => onSubmit(generatePrivateKeyHex())}
+              <View className='flex gap-4'>
+                <ControlledUiTextField
+                  control={control}
+                  name={'privateKeyHex'}
+                  label='Private Key'
+                  placeholder='Enter private key'
                   disabled={isFormDisabled}
                 />
               </View>
+
+              <View className='mt-[50] pt-4'>
+                <UiHorizontalDivider className='mb-4' />
+                <View className='flex gap-3'>
+                  <UiButton title='Import' onPress={submit} disabled={isFormDisabled} />
+                  <UiButton
+                    title='Create New'
+                    variant='outlined'
+                    onPress={() => onSubmit(generatePrivateKeyHex())}
+                    disabled={isFormDisabled}
+                  />
+                </View>
+              </View>
             </View>
-          </View>
+          </KeyboardAvoidingView>
         </BottomSheetView>
       </UiBottomSheet>
     )

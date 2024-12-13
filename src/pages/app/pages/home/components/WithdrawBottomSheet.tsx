@@ -1,9 +1,9 @@
 import { BottomSheetView } from '@gorhom/bottom-sheet'
 import { forwardRef, useCallback, useImperativeHandle, useRef } from 'react'
-import { View } from 'react-native'
+import { KeyboardAvoidingView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import { ErrorHandler } from '@/core'
+import { ErrorHandler, useSoftKeyboardEffect } from '@/core'
 import { useForm } from '@/hooks'
 import { useAppPaddings, useAppTheme } from '@/theme'
 import {
@@ -101,6 +101,8 @@ export const WithdrawBottomSheet = forwardRef<WithdrawBottomSheetRef, Props>(
       [bottomSheet, setValue],
     )
 
+    useSoftKeyboardEffect()
+
     return (
       <UiBottomSheet
         ref={bottomSheet.ref}
@@ -109,34 +111,36 @@ export const WithdrawBottomSheet = forwardRef<WithdrawBottomSheetRef, Props>(
           backgroundColor: palette.backgroundContainer,
           borderRadius: 20,
         }}
-        snapPoints={['50%']}
+        snapPoints={['50%', '65%']}
+        isCloseDisabled={isFormDisabled}
       >
         <BottomSheetView style={{ flex: 1, paddingBottom: insets.bottom }}>
-          <View
-            className='flex flex-1'
-            style={{
-              paddingLeft: appPaddings.left,
-              paddingRight: appPaddings.right,
-            }}
-          >
-            <UiHorizontalDivider className='my-4' />
+          <KeyboardAvoidingView>
+            <View
+              style={{
+                paddingLeft: appPaddings.left,
+                paddingRight: appPaddings.right,
+              }}
+            >
+              <UiHorizontalDivider className='my-4' />
 
-            <View className='flex gap-4'>
-              <ControlledUiTextField
-                control={control}
-                name={'amount'}
-                label='Amount'
-                placeholder='Enter amount'
-                keyboardType='numeric'
-                disabled={isFormDisabled}
-              />
-            </View>
+              <View className='flex gap-4'>
+                <ControlledUiTextField
+                  control={control}
+                  name={'amount'}
+                  label='Amount'
+                  placeholder='Enter amount'
+                  keyboardType='numeric'
+                  disabled={isFormDisabled}
+                />
+              </View>
 
-            <View className='mt-auto pt-4'>
-              <UiHorizontalDivider className='mb-4' />
-              <UiButton title='Withdraw' onPress={submit} disabled={isFormDisabled} />
+              <View className='mt-[100] pt-4'>
+                <UiHorizontalDivider className='mb-4' />
+                <UiButton title='Withdraw' onPress={submit} disabled={isFormDisabled} />
+              </View>
             </View>
-          </View>
+          </KeyboardAvoidingView>
         </BottomSheetView>
       </UiBottomSheet>
     )

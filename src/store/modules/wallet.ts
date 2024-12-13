@@ -16,7 +16,17 @@ export type TokenBaseInfo = {
 
 export type TxHistoryItem = {
   createdAt: TimeDate
-  txType: 'transfer' | 'deposit' | 'withdraw' | 'rollover' | 'key-rotation' | 'freeze' | 'unfreeze'
+  txType:
+    | 'transfer'
+    | 'deposit'
+    | 'withdraw'
+    | 'rollover'
+    | 'key-rotation'
+    | 'freeze'
+    | 'unfreeze'
+    | 'register'
+    | 'normalize'
+    | 'mint'
 }
 
 type StoreState = {

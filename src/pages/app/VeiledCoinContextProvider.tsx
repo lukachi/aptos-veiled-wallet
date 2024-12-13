@@ -53,6 +53,7 @@ type VeiledCoinContextType = {
   addToken: (token: TokenBaseInfo) => void
   removeToken: (address: string) => void
   txHistory: TxHistoryItem[]
+  addTxHistoryItem: (details: TxHistoryItem) => void
 
   selectedAccountDecryptionKey: TwistedEd25519PrivateKey
   selectedAccountDecryptionKeyStatus: AccountDecryptionKeyStatus
@@ -86,6 +87,7 @@ const veiledCoinContext = createContext<VeiledCoinContextType>({
   tokens: [],
   selectedToken: Config.DEFAULT_TOKEN as TokenBaseInfo,
   txHistory: [],
+  addTxHistoryItem: () => {},
 
   addToken: () => {},
   removeToken: () => {},
@@ -237,6 +239,7 @@ const useTokens = (decryptionKeyHex: string | undefined) => {
     setSelectedTokenAddress: state.setSelectedTokenAddress,
     addToken: state.addToken,
     removeToken: state.removeToken,
+    addTxHistoryItem: state.addTxHistoryItem,
   }))
 
   const selectedTokenAddress = walletStore.useSelectedTokenAddress()
@@ -282,6 +285,15 @@ const useTokens = (decryptionKeyHex: string | undefined) => {
     [decryptionKeyHex, tokensStoreManager],
   )
 
+  const addTxHistoryItem = useCallback(
+    (details: TxHistoryItem) => {
+      if (!decryptionKeyHex) throw new TypeError('decryptionKeyHex is not set')
+
+      tokensStoreManager.addTxHistoryItem(decryptionKeyHex, selectedToken.address, details)
+    },
+    [decryptionKeyHex, selectedToken.address, tokensStoreManager],
+  )
+
   return {
     tokens,
     selectedToken,
@@ -289,6 +301,7 @@ const useTokens = (decryptionKeyHex: string | undefined) => {
     setSelectedTokenAddress: tokensStoreManager.setSelectedTokenAddress,
     addToken,
     removeToken,
+    addTxHistoryItem: addTxHistoryItem,
   }
 }
 
@@ -410,7 +423,7 @@ export const VeiledCoinContextProvider = ({ children }: PropsWithChildren) => {
   const { selectedAccountDecryptionKey, registerAccountEncryptionKey } =
     useSelectedAccountDecryptionKey()
 
-  const { tokens, selectedToken, txHistory, addToken, removeToken } = useTokens(
+  const { tokens, selectedToken, txHistory, addToken, removeToken, addTxHistoryItem } = useTokens(
     selectedAccountDecryptionKey.toString(),
   )
 
@@ -504,6 +517,7 @@ export const VeiledCoinContextProvider = ({ children }: PropsWithChildren) => {
         txHistory,
         addToken,
         removeToken,
+        addTxHistoryItem,
 
         selectedAccountDecryptionKey,
         registerAccountEncryptionKey,

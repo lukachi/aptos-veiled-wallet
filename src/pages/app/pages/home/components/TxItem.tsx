@@ -16,6 +16,9 @@ export default function TxItem({ createdAt, txType, ...rest }: Props) {
     'key-rotation': 'Key rotation',
     freeze: 'Freeze',
     unfreeze: 'Unfreeze',
+    register: 'Register',
+    normalize: 'Normalize',
+    mint: 'Mint',
   }[txType]
 
   const icon = {
@@ -49,6 +52,20 @@ export default function TxItem({ createdAt, txType, ...rest }: Props) {
     ),
     unfreeze: (
       <UiIcon libIcon={'AntDesign'} name={'unlock'} size={24} className={cn('text-textPrimary')} />
+    ),
+    register: (
+      <UiIcon libIcon={'AntDesign'} name={'idcard'} size={24} className={cn('text-textPrimary')} />
+    ),
+    normalize: (
+      <UiIcon libIcon={'AntDesign'} name={'edit'} size={24} className={cn('text-textPrimary')} />
+    ),
+    mint: (
+      <UiIcon
+        libIcon={'MaterialCommunityIcons'}
+        name={'hand-coin'}
+        size={24}
+        className={cn('text-textPrimary')}
+      />
     ),
   }[txType]
 

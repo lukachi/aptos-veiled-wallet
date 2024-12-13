@@ -38,6 +38,7 @@ import { cn, useAppPaddings, useAppTheme } from '@/theme'
 type UiBottomSheetProps = BottomSheetModalProps & {
   title?: string
   headerComponent?: ReactNode
+  isCloseDisabled?: boolean
 }
 
 export const useUiBottomSheet = () => {
@@ -80,6 +81,7 @@ export const UiBottomSheet = forwardRef<BottomSheetModal, UiBottomSheetProps>(
       title,
       detached = false,
       headerComponent,
+      isCloseDisabled,
       children,
       ...rest
     },
@@ -97,8 +99,14 @@ export const UiBottomSheet = forwardRef<BottomSheetModal, UiBottomSheetProps>(
     useImperativeHandle(ref, () => (uiBottomSheet.ref.current as BottomSheetModal) || null)
 
     const renderHandleComponent = useCallback(
-      () => headerComponent || <BottomSheetHeader title={title} dismiss={uiBottomSheet.dismiss} />,
-      [headerComponent, title, uiBottomSheet.dismiss],
+      () =>
+        headerComponent || (
+          <BottomSheetHeader
+            title={title}
+            dismiss={isCloseDisabled ? () => {} : uiBottomSheet.dismiss}
+          />
+        ),
+      [headerComponent, isCloseDisabled, title, uiBottomSheet.dismiss],
     )
 
     return (
@@ -112,6 +120,7 @@ export const UiBottomSheet = forwardRef<BottomSheetModal, UiBottomSheetProps>(
         handleComponent={renderHandleComponent}
         topInset={insets.top}
         children={children}
+        enablePanDownToClose={!isCloseDisabled}
         backgroundStyle={{
           backgroundColor: palette.backgroundContainer,
           borderRadius: 20,

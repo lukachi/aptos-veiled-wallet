@@ -5,7 +5,7 @@ import type { ViewProps } from 'react-native'
 import { Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import { ErrorHandler } from '@/core'
+import { ErrorHandler, useSoftKeyboardEffect } from '@/core'
 import { useCopyToClipboard, useForm } from '@/hooks'
 import type { AuthStackScreenProps } from '@/route-types'
 import { authStore, walletStore } from '@/store'
@@ -64,6 +64,8 @@ export default function CreateWallet({ route }: Props) {
     },
     [fetchFromClipboard, setValue],
   )
+
+  useSoftKeyboardEffect()
 
   useEffect(() => {
     if (isImporting) return
