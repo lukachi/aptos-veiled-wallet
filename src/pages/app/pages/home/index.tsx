@@ -1,12 +1,21 @@
+import { BottomSheetView } from '@gorhom/bottom-sheet'
 import { type ReactElement, useCallback, useState } from 'react'
+import type { ViewProps } from 'react-native'
 import { Text, TouchableOpacity, type TouchableOpacityProps, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { ErrorHandler } from '@/core'
+import { useCopyToClipboard } from '@/hooks'
 import { useVeiledCoinContext } from '@/pages/app/VeiledCoinContextProvider'
 import type { AppTabScreenProps } from '@/route-types'
 import { cn, useAppPaddings, useBottomBarOffset } from '@/theme'
-import { UiHorizontalDivider, UiIcon, UiScreenScrollable } from '@/ui'
+import {
+  UiBottomSheet,
+  UiHorizontalDivider,
+  UiIcon,
+  UiScreenScrollable,
+  useUiBottomSheet,
+} from '@/ui'
 
 import {
   ActionCircleButton,
@@ -134,6 +143,7 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
           paddingTop: insets.top,
         }}
       >
+        <HomeHeader className='mb-6' />
         <VBCard
           className='flex gap-4'
           token={selectedToken}
@@ -150,7 +160,7 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
         <View className='flex w-full flex-row items-center justify-center gap-8'>
           <ActionCircleButton
             caption='Withdraw'
-            // disabled={isActionsDisabled}
+            disabled={isActionsDisabled}
             onPress={() => withdrawBottomSheet.present()}
           >
             <UiIcon
@@ -298,5 +308,77 @@ function ActionCard({
         <UiIcon libIcon='AntDesign' name='caretright' size={12} className='text-baseWhite' />
       </View>
     </TouchableOpacity>
+  )
+}
+
+function HomeHeader({ className, ...rest }: ViewProps) {
+  const insets = useSafeAreaInsets()
+  const appPaddings = useAppPaddings()
+  const { accountsList, addNewAccount, selectedAccount } = useVeiledCoinContext()
+
+  const accountsBottomSheet = useUiBottomSheet()
+
+  const { isCopied, copy } = useCopyToClipboard()
+
+  return (
+    <View {...rest} className={cn('flex flex-row items-center', className)}>
+      <TouchableOpacity className='mx-auto' onPress={() => accountsBottomSheet.present()}>
+        <View className='flex flex-row items-center gap-2'>
+          <Text className='line-clamp-1 max-w-[150] text-center uppercase text-textPrimary'>
+            {selectedAccount.accountAddress.toString()}
+          </Text>
+
+          <UiIcon
+            libIcon={'FontAwesome'}
+            name={'caret-down'}
+            size={24}
+            className={'text-textPrimary'}
+          />
+        </View>
+      </TouchableOpacity>
+
+      <UiBottomSheet title='Accounts' ref={accountsBottomSheet.ref} snapPoints={['50%']}>
+        <BottomSheetView
+          style={{
+            flex: 1,
+            paddingLeft: appPaddings.left,
+            paddingRight: appPaddings.right,
+            paddingBottom: insets.bottom,
+          }}
+        >
+          <View className='flex flex-1'>
+            <UiHorizontalDivider className='my-4' />
+            {accountsList.map(el => (
+              <View key={el.accountAddress.toString()} className='flex flex-row items-center'>
+                <TouchableOpacity className='px-4 py-2'>
+                  <UiIcon
+                    libIcon={'FontAwesome'}
+                    name='trash'
+                    size={20}
+                    className={'text-errorMain'}
+                  />
+                </TouchableOpacity>
+
+                <Text className='line-clamp-1 flex-1 text-center uppercase text-textPrimary'>
+                  {el.accountAddress.toString()}
+                </Text>
+
+                <TouchableOpacity
+                  className='px-4 py-2'
+                  onPress={() => copy(el.accountAddress.toString())}
+                >
+                  <UiIcon
+                    libIcon={'AntDesign'}
+                    name={isCopied ? 'check' : 'copy1'}
+                    size={18}
+                    className={'text-textPrimary'}
+                  />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+        </BottomSheetView>
+      </UiBottomSheet>
+    </View>
   )
 }

@@ -85,6 +85,7 @@ export const UiBottomSheet = forwardRef<BottomSheetModal, UiBottomSheetProps>(
     },
     ref,
   ) => {
+    const { palette } = useAppTheme()
     const insets = useSafeAreaInsets()
 
     const detachedProps = useDetachedProps()
@@ -111,6 +112,10 @@ export const UiBottomSheet = forwardRef<BottomSheetModal, UiBottomSheetProps>(
         handleComponent={renderHandleComponent}
         topInset={insets.top}
         children={children}
+        backgroundStyle={{
+          backgroundColor: palette.backgroundContainer,
+          ...(rest.backgroundStyle as object),
+        }}
       />
     )
   },
