@@ -372,10 +372,6 @@ export const generatePrivateKeyHex = () => {
   return account.privateKey.toString()
 }
 
-export const generateDecryptionKey = () => {
-  return TwistedEd25519PrivateKey.generate().toString()
-}
-
 // TODO: mb implement aptos veiled register here
 export const authorize = async () => {
   await sleep(1_000)

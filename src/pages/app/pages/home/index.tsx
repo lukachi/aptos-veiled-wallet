@@ -13,7 +13,9 @@ import {
   TransferBottomSheet,
   TxItem,
   useTransferBottomSheet,
+  useWithdrawBottomSheet,
   VBCard,
+  WithdrawBottomSheet,
 } from './components'
 
 export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
@@ -34,6 +36,7 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
     normalizeAccount,
     rolloverAccount,
     transfer,
+    withdraw,
 
     loadSelectedDecryptionKeyState,
 
@@ -43,6 +46,7 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
   } = useVeiledCoinContext()
 
   const transferBottomSheet = useTransferBottomSheet()
+  const withdrawBottomSheet = useWithdrawBottomSheet()
 
   const isActionsDisabled = !selectedAccountDecryptionKeyStatus.isRegistered || isSubmitting
 
@@ -91,7 +95,7 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
   }, [loadSelectedDecryptionKeyState, normalizeAccount])
 
   const tryTransfer = useCallback(
-    async (receiverAddress: string, amount: string) => {
+    async (receiverAddress: string, amount: number) => {
       try {
         await transfer(receiverAddress, amount)
         await loadSelectedDecryptionKeyState()
@@ -100,6 +104,18 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
       }
     },
     [loadSelectedDecryptionKeyState, transfer],
+  )
+
+  const tryWithdraw = useCallback(
+    async (amount: number) => {
+      try {
+        await withdraw(amount)
+        await loadSelectedDecryptionKeyState()
+      } catch (error) {
+        ErrorHandler.process(error)
+      }
+    },
+    [loadSelectedDecryptionKeyState, withdraw],
   )
 
   const tryTestMint = useCallback(async () => {
@@ -132,7 +148,11 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
         <UiHorizontalDivider className='my-4' />
 
         <View className='flex w-full flex-row items-center justify-center gap-8'>
-          <ActionCircleButton caption='Withdraw' disabled={isActionsDisabled}>
+          <ActionCircleButton
+            caption='Withdraw'
+            // disabled={isActionsDisabled}
+            onPress={() => withdrawBottomSheet.present()}
+          >
             <UiIcon
               libIcon={'AntDesign'}
               name={'arrowup'}
@@ -251,6 +271,7 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
           </View>
         </View>
 
+        <WithdrawBottomSheet ref={withdrawBottomSheet.ref} onSubmit={tryWithdraw} />
         <TransferBottomSheet ref={transferBottomSheet.ref} onSubmit={tryTransfer} />
       </View>
     </UiScreenScrollable>

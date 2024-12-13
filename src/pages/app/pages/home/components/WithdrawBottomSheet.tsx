@@ -15,20 +15,20 @@ import {
 } from '@/ui'
 
 type Props = {
-  onSubmit: (receiverEncryptionKeyHex: string, amount: number) => void
+  onSubmit: (amount: number) => void
 }
 
-type TransferBottomSheetRef = {
-  openWithPrefill: (receiverEncryptionKeyHex: string, amount: number) => void
+type WithdrawBottomSheetRef = {
+  openWithPrefill: (amount: number) => void
   present: () => void
   dismiss: () => void
 }
 
-export const useTransferBottomSheet = () => {
-  const ref = useRef<TransferBottomSheetRef>(null)
+export const useWithdrawBottomSheet = () => {
+  const ref = useRef<WithdrawBottomSheetRef>(null)
 
-  const openWithPrefill = (receiverEncryptionKeyHex: string, amount: number) => {
-    ref.current?.openWithPrefill(receiverEncryptionKeyHex, amount)
+  const openWithPrefill = (amount: number) => {
+    ref.current?.openWithPrefill(amount)
   }
 
   const present = () => {
@@ -47,7 +47,7 @@ export const useTransferBottomSheet = () => {
   }
 }
 
-export const TransferBottomSheet = forwardRef<TransferBottomSheetRef, Props>(
+export const WithdrawBottomSheet = forwardRef<WithdrawBottomSheetRef, Props>(
   ({ onSubmit }, ref) => {
     const { palette } = useAppTheme()
     const insets = useSafeAreaInsets()
@@ -57,12 +57,10 @@ export const TransferBottomSheet = forwardRef<TransferBottomSheetRef, Props>(
 
     const { isFormDisabled, handleSubmit, disableForm, enableForm, control, setValue } = useForm(
       {
-        receiverEncryptionKey: '',
         amount: '',
       },
       yup =>
         yup.object().shape({
-          receiverEncryptionKey: yup.string().required('Enter receiver'),
           amount: yup.number().required('Enter amount'),
         }),
     )
@@ -73,7 +71,7 @@ export const TransferBottomSheet = forwardRef<TransferBottomSheetRef, Props>(
           disableForm()
           try {
             console.log('here')
-            onSubmit(formData.receiverEncryptionKey, Number(formData.amount))
+            onSubmit(Number(formData.amount))
           } catch (error) {
             ErrorHandler.process(error)
           }
@@ -91,8 +89,7 @@ export const TransferBottomSheet = forwardRef<TransferBottomSheetRef, Props>(
         dismiss: () => {
           bottomSheet.dismiss()
         },
-        openWithPrefill: (receiverEncryptionKeyHex: string, amount: number) => {
-          setValue('receiverEncryptionKey', receiverEncryptionKeyHex)
+        openWithPrefill: (amount: number) => {
           setValue('amount', String(amount))
           bottomSheet.present()
         },
@@ -103,7 +100,7 @@ export const TransferBottomSheet = forwardRef<TransferBottomSheetRef, Props>(
     return (
       <UiBottomSheet
         ref={bottomSheet.ref}
-        title='Transfer'
+        title='Withdraw'
         backgroundStyle={{
           backgroundColor: palette.backgroundContainer,
           borderRadius: 20,
@@ -123,14 +120,6 @@ export const TransferBottomSheet = forwardRef<TransferBottomSheetRef, Props>(
             <View className='flex gap-4'>
               <ControlledUiTextField
                 control={control}
-                name={'receiverEncryptionKey'}
-                label='Receiver'
-                placeholder='Enter encryption key'
-                disabled={isFormDisabled}
-              />
-
-              <ControlledUiTextField
-                control={control}
                 name={'amount'}
                 label='Amount'
                 placeholder='Enter amount'
@@ -139,11 +128,9 @@ export const TransferBottomSheet = forwardRef<TransferBottomSheetRef, Props>(
               />
             </View>
 
-            {/*TODO: add auditors*/}
-
             <View className='mt-auto pt-4'>
               <UiHorizontalDivider className='mb-4' />
-              <UiButton title='Send' onPress={submit} disabled={isFormDisabled} />
+              <UiButton title='Withdraw' onPress={submit} disabled={isFormDisabled} />
             </View>
           </View>
         </BottomSheetView>
