@@ -3,7 +3,7 @@ import { forwardRef, useCallback, useMemo, useState } from 'react'
 import type { FieldValues } from 'react-hook-form'
 import type { UseControllerProps } from 'react-hook-form'
 import { useController } from 'react-hook-form'
-import type { TextInput, TextInputProps } from 'react-native'
+import type { TextInput, TextInputProps, ViewProps } from 'react-native'
 import { I18nManager, StyleSheet } from 'react-native'
 import { Text, TextInput as NTextInput } from 'react-native'
 import { View } from 'react-native'
@@ -18,7 +18,7 @@ const inputTv = tv({
     container: cn(
       'flex flex-row items-center gap-2 rounded-xl border-[1px] border-componentPrimary bg-transparent px-4 py-3',
     ),
-    input: cn('placeholder-textSecondary text-textPrimary typography-body2'),
+    input: cn('placeholder-textSecondary text-textPrimary'),
   },
 
   variants: {
@@ -49,17 +49,27 @@ const inputTv = tv({
   },
 })
 
-interface Props extends TextInputProps {
+type Props = TextInputProps & {
   label?: string
   errorMessage?: string
   disabled?: boolean
   leadingContent?: ReactElement
   trailingContent?: ReactElement
+  containerProps?: ViewProps
 }
 
 export const UiTextField = forwardRef<TextInput, Props>(
   (
-    { label, errorMessage, disabled, id = uuid(), leadingContent, trailingContent, ...rest }: Props,
+    {
+      label,
+      errorMessage,
+      disabled,
+      id = uuid(),
+      leadingContent,
+      trailingContent,
+      containerProps,
+      ...rest
+    }: Props,
     ref,
   ) => {
     const { palette } = useAppTheme()
@@ -79,7 +89,7 @@ export const UiTextField = forwardRef<TextInput, Props>(
     const onFocus = useCallback(() => setIsFocussed(true), [])
 
     return (
-      <View className={cn('w-full')}>
+      <View {...containerProps} className={cn('w-full', containerProps?.className)}>
         {label && <Text className={styles.label()}>{label}</Text>}
 
         <View className={cn(styles.container())}>
@@ -111,7 +121,8 @@ export const UiTextField = forwardRef<TextInput, Props>(
   },
 )
 
-type ControlledInputProps<T extends FieldValues> = Props & UseControllerProps<T> & {}
+type ControlledInputProps<T extends FieldValues> = Omit<Props, 'errorMessage'> &
+  UseControllerProps<T> & {}
 
 export function ControlledUiTextField<T extends FieldValues>({
   name,

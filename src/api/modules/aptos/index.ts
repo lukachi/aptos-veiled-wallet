@@ -158,6 +158,7 @@ export const transferVeiledCoin = async (
   decryptionKeyHex: string,
   encryptedActualBalance: TwistedElGamalCiphertext[],
   amountToTransfer: bigint,
+  recipientEncryptionKeyHex: string,
   auditorsEncryptionKeyHexList: string[],
   tokenAddress = Config.DEFAULT_TOKEN.address,
 ) => {
@@ -166,7 +167,7 @@ export const transferVeiledCoin = async (
 
   const transferTx = await aptos.veiledCoin.transferCoin({
     senderDecryptionKey: decryptionKey,
-    recipientEncryptionKey: decryptionKey.publicKey(),
+    recipientEncryptionKey: new TwistedEd25519PublicKey(recipientEncryptionKeyHex),
     encryptedActualBalance: encryptedActualBalance,
     amountToTransfer,
     sender: account.accountAddress,

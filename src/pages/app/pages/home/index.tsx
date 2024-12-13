@@ -2,14 +2,19 @@ import { type ReactElement, useCallback, useState } from 'react'
 import { Text, TouchableOpacity, type TouchableOpacityProps, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import { testWithdrawProof } from '@/api/modules/aptos'
 import { ErrorHandler } from '@/core'
 import { useVeiledCoinContext } from '@/pages/app/VeiledCoinContextProvider'
 import type { AppTabScreenProps } from '@/route-types'
 import { cn, useAppPaddings, useBottomBarOffset } from '@/theme'
 import { UiHorizontalDivider, UiIcon, UiScreenScrollable } from '@/ui'
 
-import { ActionCircleButton, TxItem, VBCard } from './components'
+import {
+  ActionCircleButton,
+  TransferBottomSheet,
+  TxItem,
+  useTransferBottomSheet,
+  VBCard,
+} from './components'
 
 export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
   const insets = useSafeAreaInsets()
@@ -28,11 +33,14 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
     unfreezeAccount,
     normalizeAccount,
     rolloverAccount,
+    transfer,
 
     loadSelectedDecryptionKeyState,
 
     txHistory,
   } = useVeiledCoinContext()
+
+  const transferBottomSheet = useTransferBottomSheet()
 
   const isActionsDisabled = !selectedAccountDecryptionKeyStatus.isRegistered || isSubmitting
 
@@ -80,6 +88,18 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
     setIsSubmitting(false)
   }, [loadSelectedDecryptionKeyState, normalizeAccount])
 
+  const tryTransfer = useCallback(
+    async (receiverAddress: string, amount: string) => {
+      try {
+        await transfer(receiverAddress, amount)
+        await loadSelectedDecryptionKeyState()
+      } catch (error) {
+        ErrorHandler.process(error)
+      }
+    },
+    [loadSelectedDecryptionKeyState, transfer],
+  )
+
   return (
     <UiScreenScrollable>
       <View
@@ -118,21 +138,16 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
               className={'text-textPrimary'}
             />
           </ActionCircleButton>
-          <ActionCircleButton caption='Transfer' disabled={isActionsDisabled}>
+          <ActionCircleButton
+            caption='Transfer'
+            // disabled={isActionsDisabled}
+            onPress={() => transferBottomSheet.present()}
+          >
             <UiIcon
               libIcon={'AntDesign'}
               name={'arrowright'}
               size={32}
               className={'text-textPrimary'}
-            />
-          </ActionCircleButton>
-          <ActionCircleButton caption='Test' disabled={isActionsDisabled}>
-            <UiIcon
-              libIcon={'AntDesign'}
-              name={'setting'}
-              size={32}
-              className={'text-textPrimary'}
-              onPress={testWithdrawProof}
             />
           </ActionCircleButton>
         </View>
@@ -219,6 +234,8 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
             )}
           </View>
         </View>
+
+        <TransferBottomSheet ref={transferBottomSheet.ref} onSubmit={tryTransfer} />
       </View>
     </UiScreenScrollable>
   )

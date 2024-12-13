@@ -13,6 +13,7 @@ import {
   normalizeVeiledBalance,
   registerVeiledBalance,
   safelyRolloverVeiledBalance,
+  transferVeiledCoin,
 } from '@/api/modules/aptos'
 import { Config } from '@/config'
 import { useLoading } from '@/hooks'
@@ -52,6 +53,7 @@ type VeiledCoinContextType = {
   normalizeAccount: () => Promise<void>
   unfreezeAccount: () => Promise<void>
   rolloverAccount: () => Promise<void>
+  transfer: (receiverEncryptionKeyHex: string, amount: string) => Promise<void>
   // TODO: rotate keys
 
   decryptionKeyStatusLoadingState: DecryptionKeyStatusLoadingState
@@ -85,6 +87,7 @@ const veiledCoinContext = createContext<VeiledCoinContextType>({
   normalizeAccount: async () => {},
   unfreezeAccount: async () => {},
   rolloverAccount: async () => {},
+  transfer: async () => {},
 
   decryptionKeyStatusLoadingState: 'idle',
   loadSelectedDecryptionKeyState: async () => {},
@@ -307,6 +310,8 @@ const useSelectedAccountDecryptionKeyStatus = (
   }, [decryptionKeyHex, selectedPrivateKeyHex, tokenAddress])
 
   return {
+    pendingVeiledBalance: data?.pending,
+    actualVeiledBalance: data?.actual,
     selectedAccountDecryptionKeyStatus,
     decryptionKeyStatusLoadingState,
     loadSelectedDecryptionKeyState: reload,
@@ -327,6 +332,7 @@ export const VeiledCoinContextProvider = ({ children }: PropsWithChildren) => {
   )
 
   const {
+    actualVeiledBalance,
     decryptionKeyStatusLoadingState,
     selectedAccountDecryptionKeyStatus,
     loadSelectedDecryptionKeyState,
@@ -336,6 +342,28 @@ export const VeiledCoinContextProvider = ({ children }: PropsWithChildren) => {
   } = useSelectedAccountDecryptionKeyStatus(
     selectedAccountDecryptionKey.toString(),
     selectedToken.address,
+  )
+
+  const transfer = useCallback(
+    async (receiverEncryptionKey: string, amount: string) => {
+      if (!actualVeiledBalance?.amountEncrypted) throw new TypeError('actual amount not loaded')
+
+      await transferVeiledCoin(
+        selectedAccount.privateKey.toString(),
+        selectedAccountDecryptionKey.toString(),
+        actualVeiledBalance?.amountEncrypted,
+        BigInt(amount),
+        receiverEncryptionKey,
+        [], // TODO: add auditors
+        selectedToken.address,
+      )
+    },
+    [
+      actualVeiledBalance?.amountEncrypted,
+      selectedAccount.privateKey,
+      selectedAccountDecryptionKey,
+      selectedToken.address,
+    ],
   )
 
   return (
@@ -359,6 +387,7 @@ export const VeiledCoinContextProvider = ({ children }: PropsWithChildren) => {
         normalizeAccount,
         unfreezeAccount,
         rolloverAccount,
+        transfer,
 
         selectedAccountDecryptionKeyStatus,
         decryptionKeyStatusLoadingState,

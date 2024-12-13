@@ -218,7 +218,7 @@ export default function Intro({}: AuthStackScreenProps<'Intro'>) {
           }}
         >
           <BottomSheetView style={{ paddingBottom: insets.bottom }}>
-            <View className={cn('py-0, flex flex-col items-center gap-4 p-5')}>
+            <View className={cn('flex flex-col items-center gap-4 p-5 py-0')}>
               <UiHorizontalDivider />
 
               <Text className='text-textSecondary typography-body2'>Choose a preferred method</Text>
