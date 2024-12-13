@@ -114,6 +114,7 @@ export const UiBottomSheet = forwardRef<BottomSheetModal, UiBottomSheetProps>(
         children={children}
         backgroundStyle={{
           backgroundColor: palette.backgroundContainer,
+          borderRadius: 20,
           ...(rest.backgroundStyle as object),
         }}
       />

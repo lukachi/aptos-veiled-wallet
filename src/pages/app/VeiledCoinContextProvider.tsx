@@ -1,6 +1,7 @@
 import type { Account } from '@aptos-labs/ts-sdk'
 import { TwistedEd25519PrivateKey } from '@aptos-labs/ts-sdk'
 import type { PropsWithChildren } from 'react'
+import { useEffect } from 'react'
 import { useCallback } from 'react'
 import { createContext, useContext, useMemo } from 'react'
 
@@ -40,7 +41,8 @@ type VeiledCoinContextType = {
   selectedAccount: Account
 
   addNewAccount: (privateKeyHex?: string) => void
-  removeAccount: (privateKeyHex: string) => void
+  removeAccount: (accountAddress: string) => void
+  setSelectedAccount: (accountAddressHex: string) => void
 
   tokens: TokenBaseInfo[]
   selectedToken: TokenBaseInfo
@@ -73,6 +75,7 @@ const veiledCoinContext = createContext<VeiledCoinContextType>({
 
   addNewAccount: () => {},
   removeAccount: () => {},
+  setSelectedAccount: () => {},
 
   tokens: [],
   selectedToken: Config.DEFAULT_TOKEN as TokenBaseInfo,
@@ -109,13 +112,13 @@ export const useVeiledCoinContext = () => {
 }
 
 const useAccounts = () => {
-  const { privateKeyHexList, addPrivateKey, removePrivateKey } = walletStore.useWalletStore(
-    state => ({
+  const { privateKeyHexList, addAndSetPrivateKey, removePrivateKey, setSelectedPrivateKeyHex } =
+    walletStore.useWalletStore(state => ({
       privateKeyHexList: state.privateKeyHexList,
-      addPrivateKey: state.addPrivateKey,
+      addAndSetPrivateKey: state.addAndSetPrivateKey,
       removePrivateKey: state.removePrivateKey,
-    }),
-  )
+      setSelectedPrivateKeyHex: state.setSelectedPrivateKeyHex,
+    }))
 
   const selectedPrivateKeyHex = walletStore.useSelectedPrivateKeyHex()
 
@@ -136,18 +139,53 @@ const useAccounts = () => {
     (privateKeyHex?: string) => {
       const newPrivateKeyHex = privateKeyHex ?? walletStore.generatePrivateKeyHex()
 
-      addPrivateKey(newPrivateKeyHex)
+      addAndSetPrivateKey(newPrivateKeyHex)
     },
-    [addPrivateKey],
+    [addAndSetPrivateKey],
   )
 
-  const removeAccount = removePrivateKey
+  const setSelectedAccount = useCallback(
+    (accountAddressHex: string) => {
+      const accountToSet = accountsList.find(
+        el => el.accountAddress.toString().toLowerCase() === accountAddressHex.toLowerCase(),
+      )
+
+      if (accountToSet?.privateKey) {
+        setSelectedPrivateKeyHex(accountToSet?.privateKey.toString())
+      }
+    },
+    [accountsList, setSelectedPrivateKeyHex],
+  )
+
+  const removeAccount = (accountAddressHex: string) => {
+    const currentAccountsListLength = accountsList.length
+
+    const filteredAccountsList = accountsList.filter(
+      el => el.accountAddress.toString().toLowerCase() !== accountAddressHex.toLowerCase(),
+    )
+
+    if (
+      currentAccountsListLength !== filteredAccountsList.length &&
+      filteredAccountsList.length > 0
+    ) {
+      const accountToRemove = accountsList.find(
+        el => el.accountAddress.toString().toLowerCase() === accountAddressHex.toLowerCase(),
+      )
+
+      if (accountToRemove?.privateKey) {
+        removePrivateKey(accountToRemove.privateKey.toString())
+        setSelectedPrivateKeyHex(filteredAccountsList[0].privateKey.toString())
+      }
+    }
+  }
 
   return {
     accountsList,
 
+    selectedPrivateKeyHex,
     selectedAccount,
 
+    setSelectedAccount,
     addNewAccount,
     removeAccount,
   }
@@ -243,35 +281,50 @@ const useSelectedAccountDecryptionKeyStatus = (
 ) => {
   const selectedPrivateKeyHex = walletStore.useSelectedPrivateKeyHex()
 
-  const { data, isLoading, isLoadingError, isEmpty, reload } = useLoading(undefined, async () => {
-    if (!decryptionKeyHex) return undefined
+  const { data, isLoading, isLoadingError, isEmpty, reload } = useLoading(
+    undefined,
+    async () => {
+      if (!decryptionKeyHex) return undefined
 
-    const isRegistered = await getIsAccountRegisteredWithToken(selectedPrivateKeyHex, tokenAddress)
+      const isRegistered = await getIsAccountRegisteredWithToken(
+        selectedPrivateKeyHex,
+        tokenAddress,
+      )
 
-    if (isRegistered) {
-      const [{ pending, actual }, isNormalized, isFrozen] = await Promise.all([
-        getVeiledBalances(selectedPrivateKeyHex, decryptionKeyHex, tokenAddress),
-        getIsBalanceNormalized(selectedPrivateKeyHex, tokenAddress),
-        getIsBalanceFrozen(selectedPrivateKeyHex, tokenAddress),
-      ])
+      if (isRegistered) {
+        const [{ pending, actual }, isNormalized, isFrozen] = await Promise.all([
+          getVeiledBalances(selectedPrivateKeyHex, decryptionKeyHex, tokenAddress),
+          getIsBalanceNormalized(selectedPrivateKeyHex, tokenAddress),
+          getIsBalanceFrozen(selectedPrivateKeyHex, tokenAddress),
+        ])
+
+        return {
+          pending,
+          actual,
+          isRegistered,
+          isNormalized,
+          isFrozen,
+        }
+      }
 
       return {
-        pending,
-        actual,
+        pending: undefined,
+        actual: undefined,
         isRegistered,
-        isNormalized,
-        isFrozen,
+        isNormalized: undefined,
+        isFrozen: undefined,
       }
-    }
+    },
+    {
+      loadArgs: [selectedPrivateKeyHex],
+    },
+  )
 
-    return {
-      pending: undefined,
-      actual: undefined,
-      isRegistered,
-      isNormalized: undefined,
-      isFrozen: undefined,
-    }
-  })
+  useEffect(() => {
+    reload()
+
+    /*eslint-disable-next-line react-hooks/exhaustive-deps*/
+  }, [selectedPrivateKeyHex])
 
   const selectedAccountDecryptionKeyStatus = {
     isFrozen: data?.isFrozen ?? false,
@@ -333,7 +386,8 @@ const useSelectedAccountDecryptionKeyStatus = (
 }
 
 export const VeiledCoinContextProvider = ({ children }: PropsWithChildren) => {
-  const { accountsList, selectedAccount, addNewAccount, removeAccount } = useAccounts()
+  const { accountsList, selectedAccount, setSelectedAccount, addNewAccount, removeAccount } =
+    useAccounts()
 
   const { selectedAccountDecryptionKey, registerAccountEncryptionKey } =
     useSelectedAccountDecryptionKey()
@@ -420,6 +474,7 @@ export const VeiledCoinContextProvider = ({ children }: PropsWithChildren) => {
 
         selectedAccount,
 
+        setSelectedAccount,
         addNewAccount,
         removeAccount,
 

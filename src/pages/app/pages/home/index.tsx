@@ -1,16 +1,21 @@
-import { BottomSheetView } from '@gorhom/bottom-sheet'
-import { type ReactElement, useCallback, useState } from 'react'
+import type { BottomSheetModal } from '@gorhom/bottom-sheet'
+import { BottomSheetScrollView, BottomSheetView } from '@gorhom/bottom-sheet'
+import type { ComponentProps } from 'react'
+import { forwardRef, type ReactElement, useCallback, useImperativeHandle, useState } from 'react'
 import type { ViewProps } from 'react-native'
 import { Text, TouchableOpacity, type TouchableOpacityProps, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
+import { generatePrivateKeyHex, validatePrivateKeyHex } from '@/api/modules/aptos'
 import { ErrorHandler } from '@/core'
-import { useCopyToClipboard } from '@/hooks'
+import { useCopyToClipboard, useForm } from '@/hooks'
 import { useVeiledCoinContext } from '@/pages/app/VeiledCoinContextProvider'
 import type { AppTabScreenProps } from '@/route-types'
 import { cn, useAppPaddings, useBottomBarOffset } from '@/theme'
 import {
+  ControlledUiTextField,
   UiBottomSheet,
+  UiButton,
   UiHorizontalDivider,
   UiIcon,
   UiScreenScrollable,
@@ -314,11 +319,20 @@ function ActionCard({
 function HomeHeader({ className, ...rest }: ViewProps) {
   const insets = useSafeAreaInsets()
   const appPaddings = useAppPaddings()
-  const { accountsList, addNewAccount, selectedAccount } = useVeiledCoinContext()
+  const { accountsList, selectedAccount, setSelectedAccount, addNewAccount, removeAccount } =
+    useVeiledCoinContext()
 
   const accountsBottomSheet = useUiBottomSheet()
+  const addAccountBottomSheet = useUiBottomSheet()
 
-  const { isCopied, copy } = useCopyToClipboard()
+  const handleAddNewAccount = useCallback(
+    (privateKeyHex: string) => {
+      addNewAccount(privateKeyHex)
+      addAccountBottomSheet.dismiss()
+      accountsBottomSheet.dismiss()
+    },
+    [accountsBottomSheet, addAccountBottomSheet, addNewAccount],
+  )
 
   return (
     <View {...rest} className={cn('flex flex-row items-center', className)}>
@@ -337,7 +351,7 @@ function HomeHeader({ className, ...rest }: ViewProps) {
         </View>
       </TouchableOpacity>
 
-      <UiBottomSheet title='Accounts' ref={accountsBottomSheet.ref} snapPoints={['50%']}>
+      <UiBottomSheet title='Accounts' ref={accountsBottomSheet.ref} snapPoints={['75%']}>
         <BottomSheetView
           style={{
             flex: 1,
@@ -348,37 +362,174 @@ function HomeHeader({ className, ...rest }: ViewProps) {
         >
           <View className='flex flex-1'>
             <UiHorizontalDivider className='my-4' />
-            {accountsList.map(el => (
-              <View key={el.accountAddress.toString()} className='flex flex-row items-center'>
-                <TouchableOpacity className='px-4 py-2'>
-                  <UiIcon
-                    libIcon={'FontAwesome'}
-                    name='trash'
-                    size={20}
-                    className={'text-errorMain'}
-                  />
-                </TouchableOpacity>
 
-                <Text className='line-clamp-1 flex-1 text-center uppercase text-textPrimary'>
-                  {el.accountAddress.toString()}
-                </Text>
-
-                <TouchableOpacity
-                  className='px-4 py-2'
-                  onPress={() => copy(el.accountAddress.toString())}
-                >
-                  <UiIcon
-                    libIcon={'AntDesign'}
-                    name={isCopied ? 'check' : 'copy1'}
-                    size={18}
-                    className={'text-textPrimary'}
+            <BottomSheetScrollView style={{ flex: 1 }}>
+              <View className='flex flex-1 gap-3'>
+                {accountsList.map(el => (
+                  <AccountListItem
+                    key={el.accountAddress.toString()}
+                    accountAddress={el.accountAddress.toString()}
+                    isActive={
+                      selectedAccount.accountAddress.toString().toLowerCase() ===
+                      el.accountAddress.toString().toLowerCase()
+                    }
+                    onRemove={() => removeAccount(el.accountAddress.toString())}
+                    onSelect={() => {
+                      setSelectedAccount(el.accountAddress.toString())
+                      accountsBottomSheet.dismiss()
+                    }}
                   />
-                </TouchableOpacity>
+                ))}
               </View>
-            ))}
+            </BottomSheetScrollView>
+
+            <UiHorizontalDivider className='my-4' />
+
+            <UiButton
+              title='Add Account'
+              onPress={() => {
+                accountsBottomSheet.dismiss()
+                addAccountBottomSheet.present()
+              }}
+            />
           </View>
         </BottomSheetView>
       </UiBottomSheet>
+
+      <AddNewAccountBottomSheet ref={addAccountBottomSheet.ref} onSubmit={handleAddNewAccount} />
     </View>
   )
 }
+
+type AccountListItemProps = {
+  accountAddress: string
+  isActive: boolean
+  onRemove: () => void
+  onSelect: () => void
+} & ViewProps
+
+function AccountListItem({
+  accountAddress,
+  className,
+  isActive,
+  onRemove,
+  onSelect,
+  ...rest
+}: AccountListItemProps) {
+  const { isCopied, copy } = useCopyToClipboard()
+
+  return (
+    <View
+      {...rest}
+      className={cn(
+        'flex flex-row items-center py-2',
+        isActive && 'rounded-md bg-componentHovered',
+        className,
+      )}
+    >
+      <TouchableOpacity className='px-4 py-2' onPress={onRemove}>
+        <UiIcon libIcon={'FontAwesome'} name='trash' size={20} className={'text-errorMain'} />
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={onSelect} className='flex h-full flex-1 justify-center'>
+        <Text className='line-clamp-1 text-center uppercase text-textPrimary'>
+          {accountAddress}
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity className='px-4 py-2' onPress={() => copy(accountAddress)}>
+        <UiIcon
+          libIcon={'AntDesign'}
+          name={isCopied ? 'check' : 'copy1'}
+          size={18}
+          className={'text-textPrimary'}
+        />
+      </TouchableOpacity>
+    </View>
+  )
+}
+
+type AddNewAccountBottomSheetProps = {
+  onSubmit: (privateKeyHex: string) => void
+} & Omit<ComponentProps<typeof UiBottomSheet>, 'children'>
+
+const AddNewAccountBottomSheet = forwardRef<BottomSheetModal, AddNewAccountBottomSheetProps>(
+  ({ onSubmit, ...rest }, ref) => {
+    const insets = useSafeAreaInsets()
+    const appPaddings = useAppPaddings()
+
+    const bottomSheet = useUiBottomSheet()
+
+    const { isFormDisabled, handleSubmit, disableForm, enableForm, control } = useForm(
+      {
+        privateKeyHex: '',
+      },
+      yup =>
+        yup.object().shape({
+          privateKeyHex: yup
+            .string()
+            .required('Enter private key')
+            .test('The key is not valid', value => {
+              return validatePrivateKeyHex(value)
+            }),
+        }),
+    )
+
+    useImperativeHandle(ref, () => (bottomSheet.ref.current as BottomSheetModal) || null, [
+      bottomSheet,
+    ])
+
+    const submit = useCallback(
+      () =>
+        handleSubmit(formData => {
+          disableForm()
+          try {
+            onSubmit(formData.privateKeyHex)
+          } catch (error) {
+            ErrorHandler.process(error)
+          }
+          enableForm()
+        })(),
+      [disableForm, enableForm, handleSubmit, onSubmit],
+    )
+
+    return (
+      <UiBottomSheet {...rest} ref={bottomSheet.ref} title='Add Account' snapPoints={['50%']}>
+        <BottomSheetView style={{ flex: 1, paddingBottom: insets.bottom }}>
+          <View
+            className='flex flex-1'
+            style={{
+              paddingLeft: appPaddings.left,
+              paddingRight: appPaddings.right,
+            }}
+          >
+            <UiHorizontalDivider className='my-4' />
+
+            <View className='flex gap-4'>
+              <ControlledUiTextField
+                control={control}
+                name={'privateKeyHex'}
+                label='Private Key'
+                placeholder='Enter private key'
+                disabled={isFormDisabled}
+              />
+            </View>
+
+            <View className='mt-auto pt-4'>
+              <UiHorizontalDivider className='mb-4' />
+              <View className='flex gap-3'>
+                <UiButton title='Import' onPress={submit} disabled={isFormDisabled} />
+                <UiButton
+                  title='Create New'
+                  variant='outlined'
+                  onPress={() => onSubmit(generatePrivateKeyHex())}
+                  disabled={isFormDisabled}
+                />
+              </View>
+            </View>
+          </View>
+        </BottomSheetView>
+      </UiBottomSheet>
+    )
+  },
+)

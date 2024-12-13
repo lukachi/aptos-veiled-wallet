@@ -61,7 +61,7 @@ const useWalletStore = create(
           })
         },
 
-        addPrivateKey: (privateKeyHex: string): void => {
+        addAndSetPrivateKey: (privateKeyHex: string): void => {
           set(state => ({
             privateKeyHexList: [...state.privateKeyHexList, privateKeyHex],
             _selectedPrivateKeyHex: privateKeyHex,

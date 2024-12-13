@@ -87,6 +87,16 @@ export const accountFromPrivateKey = (privateKeyHex: string) => {
   })
 }
 
+export const validatePrivateKeyHex = (privateKeyHex: string) => {
+  try {
+    const account = accountFromPrivateKey(privateKeyHex)
+
+    return Boolean(account.accountAddress.toString())
+  } catch (error) {
+    return false
+  }
+}
+
 export const decryptionKeyFromPrivateKey = (privateKeyHex: string) => {
   const account = accountFromPrivateKey(privateKeyHex)
 
