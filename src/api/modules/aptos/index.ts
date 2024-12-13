@@ -130,7 +130,22 @@ export const sendAndWaitBatchTxs = async (
   return Promise.all(txHashes.map(txHash => aptos.waitForTransaction({ transactionHash: txHash })))
 }
 
-// TODO: implement range proof initialization
+export const mintTokens = async (
+  privateKeyHex: string,
+  tokenAddress = Config.DEFAULT_TOKEN.address,
+) => {
+  const account = accountFromPrivateKey(privateKeyHex)
+
+  const tx = await aptos.transaction.build.simple({
+    sender: account.accountAddress,
+    data: {
+      function: `${VeiledCoin.VEILED_COIN_MODULE_ADDRESS}::mock_token::mint_to`,
+      functionArguments: [tokenAddress],
+    },
+  })
+
+  return sendAndWaitTx(tx, account)
+}
 
 export const withdrawVeiledBalance = async (
   privateKeyHex: string,

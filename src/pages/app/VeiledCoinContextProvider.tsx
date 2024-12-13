@@ -6,10 +6,12 @@ import { createContext, useContext, useMemo } from 'react'
 
 import {
   accountFromPrivateKey,
+  depositVeiledBalance,
   getIsAccountRegisteredWithToken,
   getIsBalanceFrozen,
   getIsBalanceNormalized,
   getVeiledBalances,
+  mintTokens,
   normalizeVeiledBalance,
   registerVeiledBalance,
   safelyRolloverVeiledBalance,
@@ -54,10 +56,14 @@ type VeiledCoinContextType = {
   unfreezeAccount: () => Promise<void>
   rolloverAccount: () => Promise<void>
   transfer: (receiverEncryptionKeyHex: string, amount: string) => Promise<void>
+
+  deposit: (amount: number) => Promise<void>
   // TODO: rotate keys
 
   decryptionKeyStatusLoadingState: DecryptionKeyStatusLoadingState
   loadSelectedDecryptionKeyState: () => Promise<void>
+
+  testMintTokens: () => Promise<void>
 }
 
 const veiledCoinContext = createContext<VeiledCoinContextType>({
@@ -88,9 +94,12 @@ const veiledCoinContext = createContext<VeiledCoinContextType>({
   unfreezeAccount: async () => {},
   rolloverAccount: async () => {},
   transfer: async () => {},
+  deposit: async () => {},
 
   decryptionKeyStatusLoadingState: 'idle',
   loadSelectedDecryptionKeyState: async () => {},
+
+  testMintTokens: async () => {},
 })
 
 export const useVeiledCoinContext = () => {
@@ -366,6 +375,22 @@ export const VeiledCoinContextProvider = ({ children }: PropsWithChildren) => {
     ],
   )
 
+  const deposit = useCallback(
+    async (amount: number) => {
+      await depositVeiledBalance(
+        selectedAccount.privateKey.toString(),
+        amount,
+        selectedToken.address,
+      )
+    },
+    [selectedAccount.privateKey, selectedToken.address],
+  )
+
+  const testMintTokens = useCallback(async () => {
+    await mintTokens(selectedAccount.privateKey.toString(), 10)
+    await deposit(10)
+  }, [deposit, selectedAccount.privateKey])
+
   return (
     <veiledCoinContext.Provider
       value={{
@@ -388,10 +413,13 @@ export const VeiledCoinContextProvider = ({ children }: PropsWithChildren) => {
         unfreezeAccount,
         rolloverAccount,
         transfer,
+        deposit,
 
         selectedAccountDecryptionKeyStatus,
         decryptionKeyStatusLoadingState,
         loadSelectedDecryptionKeyState,
+
+        testMintTokens,
       }}
     >
       {children}

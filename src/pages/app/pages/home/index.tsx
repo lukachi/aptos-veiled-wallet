@@ -38,6 +38,8 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
     loadSelectedDecryptionKeyState,
 
     txHistory,
+
+    testMintTokens,
   } = useVeiledCoinContext()
 
   const transferBottomSheet = useTransferBottomSheet()
@@ -100,6 +102,14 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
     [loadSelectedDecryptionKeyState, transfer],
   )
 
+  const tryTestMint = useCallback(async () => {
+    try {
+      await testMintTokens()
+    } catch (error) {
+      ErrorHandler.process(error)
+    }
+  }, [testMintTokens])
+
   return (
     <UiScreenScrollable>
       <View
@@ -130,17 +140,9 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
               className={'text-textPrimary'}
             />
           </ActionCircleButton>
-          <ActionCircleButton caption='Deposit' disabled={isActionsDisabled}>
-            <UiIcon
-              libIcon={'AntDesign'}
-              name={'arrowdown'}
-              size={32}
-              className={'text-textPrimary'}
-            />
-          </ActionCircleButton>
           <ActionCircleButton
             caption='Transfer'
-            // disabled={isActionsDisabled}
+            disabled={isActionsDisabled}
             onPress={() => transferBottomSheet.present()}
           >
             <UiIcon
@@ -212,6 +214,20 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
                       onPress={tryNormalize}
                     />
                   )}
+
+                  <ActionCard
+                    title={'Test Mint'}
+                    desc={'Mint 10 test tokens'}
+                    leadingContent={
+                      <UiIcon
+                        libIcon={'MaterialCommunityIcons'}
+                        name={'hand-coin'}
+                        size={32}
+                        className={'self-center text-textPrimary'}
+                      />
+                    }
+                    onPress={tryTestMint}
+                  />
                 </>
               )}
             </View>
