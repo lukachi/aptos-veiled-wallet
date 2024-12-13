@@ -3,7 +3,13 @@ import { BottomSheetScrollView, BottomSheetView } from '@gorhom/bottom-sheet'
 import type { ComponentProps } from 'react'
 import { forwardRef, type ReactElement, useCallback, useImperativeHandle, useState } from 'react'
 import type { ViewProps } from 'react-native'
-import { Text, TouchableOpacity, type TouchableOpacityProps, View } from 'react-native'
+import {
+  RefreshControl,
+  Text,
+  TouchableOpacity,
+  type TouchableOpacityProps,
+  View,
+} from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { generatePrivateKeyHex, validatePrivateKeyHex } from '@/api/modules/aptos'
@@ -22,6 +28,7 @@ import {
   UiScreenScrollable,
   useUiBottomSheet,
 } from '@/ui'
+import UiSkeleton from '@/ui/UiSkeleton'
 
 import {
   ActionCircleButton,
@@ -148,14 +155,43 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
     }
   }, [testMintTokens])
 
+  const [isRefreshing, setIsRefreshing] = useState(false)
+
+  const tryRefresh = useCallback(async () => {
+    setIsRefreshing(true)
+    try {
+      console.log('refresh')
+      await Promise.all([loadSelectedDecryptionKeyState(), reloadAptBalance()])
+    } catch (error) {
+      ErrorHandler.processWithoutFeedback(error)
+    }
+    setIsRefreshing(false)
+  }, [loadSelectedDecryptionKeyState, reloadAptBalance])
+
   return (
-    <UiScreenScrollable>
+    <UiScreenScrollable
+      scrollViewProps={{
+        refreshControl: (
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={tryRefresh}
+            enabled={true}
+            colors={['red']}
+            progressBackgroundColor={'yellow'}
+            size={10}
+          />
+        ),
+      }}
+    >
       <View
         className='flex flex-1'
         style={{
           paddingTop: insets.top,
         }}
       >
+        {isRefreshing && (
+          <UiSkeleton className='mx-auto mb-4 h-[16] w-[80%] rounded-2xl bg-componentPressed' />
+        )}
         <HomeHeader className='mb-6' />
         <VBCard
           className='flex gap-4'
@@ -414,6 +450,7 @@ function HomeHeader({ className, ...rest }: ViewProps) {
                       selectedAccount.accountAddress.toString().toLowerCase() ===
                       el.accountAddress.toString().toLowerCase()
                     }
+                    isRemovable={accountsList.length > 1}
                     onRemove={() => removeAccount(el.accountAddress.toString())}
                     onSelect={() => {
                       setSelectedAccount(el.accountAddress.toString())
@@ -445,6 +482,7 @@ function HomeHeader({ className, ...rest }: ViewProps) {
 type AccountListItemProps = {
   accountAddress: string
   isActive: boolean
+  isRemovable: boolean
   onRemove: () => void
   onSelect: () => void
 } & ViewProps
@@ -455,6 +493,7 @@ function AccountListItem({
   isActive,
   onRemove,
   onSelect,
+  isRemovable,
   ...rest
 }: AccountListItemProps) {
   const { isCopied, copy } = useCopyToClipboard()
@@ -468,11 +507,13 @@ function AccountListItem({
         className,
       )}
     >
-      <TouchableOpacity className='px-4 py-2' onPress={onRemove}>
-        <UiIcon libIcon={'FontAwesome'} name='trash' size={20} className={'text-errorMain'} />
-      </TouchableOpacity>
+      {isRemovable && (
+        <TouchableOpacity className='px-4 py-2' onPress={onRemove}>
+          <UiIcon libIcon={'FontAwesome'} name='trash' size={20} className={'text-errorMain'} />
+        </TouchableOpacity>
+      )}
 
-      <TouchableOpacity onPress={onSelect} className='flex h-full flex-1 justify-center'>
+      <TouchableOpacity onPress={onSelect} className='flex h-full flex-1 justify-center px-4'>
         <Text className='line-clamp-1 text-center uppercase text-textPrimary'>
           {accountAddress}
         </Text>
