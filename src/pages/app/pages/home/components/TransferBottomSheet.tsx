@@ -15,7 +15,7 @@ import {
 } from '@/ui'
 
 type Props = {
-  onSubmit: (receiverEncryptionKeyHex: string, amount: number) => void
+  onSubmit: (receiverEncryptionKeyHex: string, amount: number) => Promise<void>
 }
 
 type TransferBottomSheetRef = {
@@ -67,19 +67,24 @@ export const TransferBottomSheet = forwardRef<TransferBottomSheetRef, Props>(
         }),
     )
 
+    const clearForm = useCallback(() => {
+      setValue('receiverEncryptionKey', '')
+      setValue('amount', '')
+    }, [setValue])
+
     const submit = useCallback(
       () =>
-        handleSubmit(formData => {
+        handleSubmit(async formData => {
           disableForm()
           try {
-            console.log('here')
-            onSubmit(formData.receiverEncryptionKey, Number(formData.amount))
+            await onSubmit(formData.receiverEncryptionKey, Number(formData.amount))
+            clearForm()
           } catch (error) {
             ErrorHandler.process(error)
           }
           enableForm()
         })(),
-      [disableForm, enableForm, handleSubmit, onSubmit],
+      [clearForm, disableForm, enableForm, handleSubmit, onSubmit],
     )
 
     useImperativeHandle(

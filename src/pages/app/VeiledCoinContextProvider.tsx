@@ -359,14 +359,14 @@ const useSelectedAccountDecryptionKeyStatus = (
   const normalizeAccount = async () => {
     if (!decryptionKeyHex) throw new TypeError('Decryption key is not set')
 
-    if (!data?.pending?.amountEncrypted || !data?.pending?.amount)
+    if (!data?.actual?.amountEncrypted || !data?.actual?.amount)
       throw new TypeError('Pending amount is not loaded')
 
     await normalizeVeiledBalance(
       selectedPrivateKeyHex,
       decryptionKeyHex,
-      data.pending.amountEncrypted,
-      data.pending.amount,
+      data.actual.amountEncrypted,
+      data.actual.amount,
       tokenAddress,
     )
   }

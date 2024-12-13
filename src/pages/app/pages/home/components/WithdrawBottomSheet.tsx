@@ -15,7 +15,7 @@ import {
 } from '@/ui'
 
 type Props = {
-  onSubmit: (amount: number) => void
+  onSubmit: (amount: number) => Promise<void>
 }
 
 type WithdrawBottomSheetRef = {
@@ -65,19 +65,23 @@ export const WithdrawBottomSheet = forwardRef<WithdrawBottomSheetRef, Props>(
         }),
     )
 
+    const clearForm = useCallback(() => {
+      setValue('amount', '')
+    }, [setValue])
+
     const submit = useCallback(
       () =>
-        handleSubmit(formData => {
+        handleSubmit(async formData => {
           disableForm()
           try {
-            console.log('here')
-            onSubmit(Number(formData.amount))
+            await onSubmit(Number(formData.amount))
+            clearForm()
           } catch (error) {
             ErrorHandler.process(error)
           }
           enableForm()
         })(),
-      [disableForm, enableForm, handleSubmit, onSubmit],
+      [clearForm, disableForm, enableForm, handleSubmit, onSubmit],
     )
 
     useImperativeHandle(

@@ -74,90 +74,10 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
 
   const isActionsDisabled = !selectedAccountDecryptionKeyStatus.isRegistered || isSubmitting
 
-  const tryRollover = useCallback(async () => {
-    setIsSubmitting(true)
-    try {
-      await rolloverAccount()
-      await Promise.all([loadSelectedDecryptionKeyState(), reloadAptBalance()])
-    } catch (error) {
-      ErrorHandler.process(error)
-    }
-    setIsSubmitting(false)
-  }, [loadSelectedDecryptionKeyState, reloadAptBalance, rolloverAccount])
-
-  const tryUnfreeze = useCallback(async () => {
-    setIsSubmitting(true)
-    try {
-      await unfreezeAccount()
-      await Promise.all([loadSelectedDecryptionKeyState(), reloadAptBalance()])
-    } catch (error) {
-      ErrorHandler.process(error)
-    }
-    setIsSubmitting(false)
-  }, [loadSelectedDecryptionKeyState, reloadAptBalance, unfreezeAccount])
-
-  const tryRegister = useCallback(async () => {
-    setIsSubmitting(true)
-    try {
-      await registerAccountEncryptionKey(selectedToken.address)
-      await Promise.all([loadSelectedDecryptionKeyState(), reloadAptBalance()])
-    } catch (error) {
-      ErrorHandler.process(error)
-    }
-    setIsSubmitting(false)
-  }, [
-    loadSelectedDecryptionKeyState,
-    registerAccountEncryptionKey,
-    reloadAptBalance,
-    selectedToken.address,
-  ])
-
-  const tryNormalize = useCallback(async () => {
-    setIsSubmitting(true)
-    try {
-      await normalizeAccount()
-      await Promise.all([loadSelectedDecryptionKeyState(), reloadAptBalance()])
-    } catch (error) {
-      ErrorHandler.process(error)
-    }
-    setIsSubmitting(false)
-  }, [loadSelectedDecryptionKeyState, normalizeAccount, reloadAptBalance])
-
-  const tryTransfer = useCallback(
-    async (receiverAddress: string, amount: number) => {
-      try {
-        await transfer(receiverAddress, amount)
-        await Promise.all([loadSelectedDecryptionKeyState(), reloadAptBalance()])
-      } catch (error) {
-        ErrorHandler.process(error)
-      }
-    },
-    [loadSelectedDecryptionKeyState, reloadAptBalance, transfer],
-  )
-
-  const tryWithdraw = useCallback(
-    async (amount: number) => {
-      try {
-        await withdraw(amount)
-        await Promise.all([loadSelectedDecryptionKeyState(), reloadAptBalance()])
-      } catch (error) {
-        ErrorHandler.process(error)
-      }
-    },
-    [loadSelectedDecryptionKeyState, reloadAptBalance, withdraw],
-  )
-
-  const tryTestMint = useCallback(async () => {
-    try {
-      await testMintTokens()
-    } catch (error) {
-      ErrorHandler.process(error)
-    }
-  }, [testMintTokens])
-
   const [isRefreshing, setIsRefreshing] = useState(false)
 
   const tryRefresh = useCallback(async () => {
+    setIsSubmitting(true)
     setIsRefreshing(true)
     try {
       console.log('refresh')
@@ -166,7 +86,93 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
       ErrorHandler.processWithoutFeedback(error)
     }
     setIsRefreshing(false)
+    setIsSubmitting(false)
   }, [loadSelectedDecryptionKeyState, reloadAptBalance])
+
+  const tryRollover = useCallback(async () => {
+    setIsSubmitting(true)
+    try {
+      await rolloverAccount()
+      await tryRefresh()
+    } catch (error) {
+      ErrorHandler.process(error)
+    }
+    setIsSubmitting(false)
+  }, [rolloverAccount, tryRefresh])
+
+  const tryUnfreeze = useCallback(async () => {
+    setIsSubmitting(true)
+    try {
+      await unfreezeAccount()
+      await tryRefresh()
+    } catch (error) {
+      ErrorHandler.process(error)
+    }
+    setIsSubmitting(false)
+  }, [tryRefresh, unfreezeAccount])
+
+  const tryRegister = useCallback(async () => {
+    setIsSubmitting(true)
+    try {
+      await registerAccountEncryptionKey(selectedToken.address)
+      await tryRefresh()
+    } catch (error) {
+      ErrorHandler.process(error)
+    }
+    setIsSubmitting(false)
+  }, [registerAccountEncryptionKey, selectedToken.address, tryRefresh])
+
+  const tryNormalize = useCallback(async () => {
+    setIsSubmitting(true)
+    try {
+      await normalizeAccount()
+      await tryRefresh()
+    } catch (error) {
+      ErrorHandler.process(error)
+    }
+    setIsSubmitting(false)
+  }, [normalizeAccount, tryRefresh])
+
+  const tryTransfer = useCallback(
+    async (receiverAddress: string, amount: number) => {
+      setIsSubmitting(true)
+      try {
+        await transfer(receiverAddress, amount)
+        await tryRefresh()
+        transferBottomSheet.dismiss()
+      } catch (error) {
+        ErrorHandler.process(error)
+      }
+      setIsSubmitting(false)
+    },
+    [transfer, transferBottomSheet, tryRefresh],
+  )
+
+  const tryWithdraw = useCallback(
+    async (amount: number) => {
+      setIsSubmitting(true)
+      try {
+        await withdraw(amount)
+        await tryRefresh()
+        withdrawBottomSheet.dismiss()
+      } catch (error) {
+        ErrorHandler.process(error)
+      }
+      setIsSubmitting(false)
+    },
+    [tryRefresh, withdraw, withdrawBottomSheet],
+  )
+
+  const tryTestMint = useCallback(async () => {
+    setIsSubmitting(true)
+    try {
+      await testMintTokens()
+      await tryRefresh()
+    } catch (error) {
+      ErrorHandler.process(error)
+    }
+    setIsSubmitting(false)
+  }, [testMintTokens, tryRefresh])
 
   return (
     <UiScreenScrollable
@@ -175,7 +181,7 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={tryRefresh}
-            enabled={true}
+            enabled={!isSubmitting}
             colors={['red']}
             progressBackgroundColor={'yellow'}
             size={10}
@@ -259,6 +265,7 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
                     />
                   }
                   onPress={tryRegister}
+                  disabled={isSubmitting}
                 />
               ) : (
                 <>
@@ -275,6 +282,7 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
                         />
                       }
                       onPress={tryUnfreeze}
+                      disabled={isSubmitting}
                     />
                   )}
 
@@ -291,6 +299,7 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
                         />
                       }
                       onPress={tryNormalize}
+                      disabled={isSubmitting}
                     />
                   )}
 
@@ -306,6 +315,7 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
                       />
                     }
                     onPress={tryTestMint}
+                    disabled={isSubmitting}
                   />
                 </>
               )}
@@ -341,12 +351,18 @@ function ActionCard({
   title,
   desc,
   leadingContent,
+  disabled,
   ...rest
 }: { title: string; desc?: string; leadingContent?: ReactElement } & TouchableOpacityProps) {
   return (
     <TouchableOpacity
       {...rest}
-      className={cn('flex flex-row gap-4 rounded-2xl bg-componentPrimary p-4', rest.className)}
+      className={cn(
+        'flex flex-row gap-4 rounded-2xl bg-componentPrimary p-4',
+        disabled && 'opacity-50',
+        rest.className,
+      )}
+      disabled={disabled}
     >
       {leadingContent}
       <View className='flex-1'>
