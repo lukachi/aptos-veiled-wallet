@@ -12,6 +12,8 @@ import {
   type TouchableOpacityProps,
   View,
 } from 'react-native'
+import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable'
+import Reanimated, { useAnimatedStyle } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { generatePrivateKeyHex, validatePrivateKeyHex } from '@/api/modules/aptos'
@@ -20,7 +22,7 @@ import { formatAmount } from '@/helpers'
 import { useCopyToClipboard, useForm } from '@/hooks'
 import { useVeiledCoinContext } from '@/pages/app/VeiledCoinContextProvider'
 import type { AppTabScreenProps } from '@/route-types'
-import { cn, useAppPaddings, useBottomBarOffset } from '@/theme'
+import { cn, useAppPaddings, useAppTheme, useBottomBarOffset } from '@/theme'
 import {
   ControlledUiTextField,
   UiBottomSheet,
@@ -492,6 +494,7 @@ function HomeHeader({ className, ...rest }: ViewProps) {
                 {accountsList.map(el => (
                   <AccountListItem
                     key={el.accountAddress.toString()}
+                    privateKeyHex={el.privateKey.toString()}
                     accountAddress={el.accountAddress.toString()}
                     isActive={
                       selectedAccount.accountAddress.toString().toLowerCase() ===
@@ -527,6 +530,7 @@ function HomeHeader({ className, ...rest }: ViewProps) {
 }
 
 type AccountListItemProps = {
+  privateKeyHex: string
   accountAddress: string
   isActive: boolean
   isRemovable: boolean
@@ -535,6 +539,7 @@ type AccountListItemProps = {
 } & ViewProps
 
 function AccountListItem({
+  privateKeyHex,
   accountAddress,
   className,
   isActive,
@@ -543,38 +548,85 @@ function AccountListItem({
   isRemovable,
   ...rest
 }: AccountListItemProps) {
-  const { isCopied, copy } = useCopyToClipboard()
+  const { palette } = useAppTheme()
+
+  const styleAnimation = useAnimatedStyle(() => {
+    return {
+      // transform: [{ translateX: drag.value + 50 }],
+    }
+  })
+
+  const addrCopyManager = useCopyToClipboard()
+  const pkCopyManager = useCopyToClipboard()
 
   return (
-    <View
-      {...rest}
-      className={cn(
-        'flex flex-row items-center py-2',
-        isActive && 'rounded-md bg-componentHovered',
-        className,
+    <Swipeable
+      friction={2}
+      enableTrackpadTwoFingerGesture
+      rightThreshold={40}
+      leftThreshold={40}
+      // renderLeftActions={LeftAction}
+      renderRightActions={() => (
+        <Reanimated.View style={styleAnimation}>
+          <View className='flex h-full flex-row items-center'>
+            {isRemovable && (
+              <TouchableOpacity
+                className='flex min-w-[60] items-center justify-center self-stretch bg-errorMain'
+                onPress={onRemove}
+              >
+                <UiIcon libIcon={'FontAwesome'} name='trash' size={24} color={palette.baseWhite} />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              className='flex min-w-[60] items-center justify-center self-stretch bg-textSecondary'
+              onPress={() => addrCopyManager.copy(accountAddress)}
+            >
+              <UiIcon
+                libIcon={'AntDesign'}
+                name={addrCopyManager.isCopied ? 'check' : 'copy1'}
+                size={18}
+                className={'text-baseWhite'}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              className='flex min-w-[60] items-center justify-center self-stretch bg-warningMain'
+              onPress={() => pkCopyManager.copy(privateKeyHex)}
+            >
+              <UiIcon
+                libIcon={'AntDesign'}
+                name={pkCopyManager.isCopied ? 'check' : 'key'}
+                size={18}
+                className={'text-baseWhite'}
+              />
+            </TouchableOpacity>
+          </View>
+        </Reanimated.View>
       )}
     >
-      {isRemovable && (
-        <TouchableOpacity className='px-4 py-2' onPress={onRemove}>
-          <UiIcon libIcon={'FontAwesome'} name='trash' size={20} className={'text-errorMain'} />
+      <View
+        {...rest}
+        className={cn(
+          'flex h-[60] flex-row items-center bg-backgroundPure py-2',
+          // isActive && 'rounded-md bg-backgroundPrimary',
+          className,
+        )}
+      >
+        {isActive && (
+          <UiIcon
+            libIcon={'FontAwesome'}
+            name='check-circle'
+            size={20}
+            className={'text-textPrimary'}
+          />
+        )}
+
+        <TouchableOpacity onPress={onSelect} className='flex h-full flex-1 justify-center px-4'>
+          <Text className='line-clamp-1 text-center uppercase text-textPrimary'>
+            {accountAddress}
+          </Text>
         </TouchableOpacity>
-      )}
-
-      <TouchableOpacity onPress={onSelect} className='flex h-full flex-1 justify-center px-4'>
-        <Text className='line-clamp-1 text-center uppercase text-textPrimary'>
-          {accountAddress}
-        </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity className='px-4 py-2' onPress={() => copy(accountAddress)}>
-        <UiIcon
-          libIcon={'AntDesign'}
-          name={isCopied ? 'check' : 'copy1'}
-          size={18}
-          className={'text-textPrimary'}
-        />
-      </TouchableOpacity>
-    </View>
+      </View>
+    </Swipeable>
   )
 }
 

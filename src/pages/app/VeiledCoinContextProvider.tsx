@@ -1,4 +1,4 @@
-import type { Account } from '@aptos-labs/ts-sdk'
+import type { Ed25519Account } from '@aptos-labs/ts-sdk'
 import { TwistedEd25519PrivateKey } from '@aptos-labs/ts-sdk'
 import type { PropsWithChildren } from 'react'
 import { useCallback } from 'react'
@@ -36,9 +36,9 @@ type AccountDecryptionKeyStatus = {
 type DecryptionKeyStatusLoadingState = 'idle' | 'loading' | 'success' | 'error'
 
 type VeiledCoinContextType = {
-  accountsList: Account[]
+  accountsList: Ed25519Account[]
 
-  selectedAccount: Account
+  selectedAccount: Ed25519Account
 
   addNewAccount: (privateKeyHex?: string) => void
   removeAccount: (accountAddress: string) => void
@@ -75,7 +75,7 @@ type VeiledCoinContextType = {
 
 const veiledCoinContext = createContext<VeiledCoinContextType>({
   accountsList: [],
-  selectedAccount: {} as Account,
+  selectedAccount: {} as Ed25519Account,
 
   addNewAccount: () => {},
   removeAccount: () => {},
