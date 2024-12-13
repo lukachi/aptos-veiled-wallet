@@ -15,7 +15,6 @@ import {
   UiBottomSheet,
   UiButton,
   UiHorizontalDivider,
-  UiImage,
   UiScreenScrollable,
   useUiBottomSheet,
 } from '@/ui'
@@ -67,17 +66,17 @@ export default function Intro({}: AuthStackScreenProps<'Intro'>) {
           </View>
         ),
       },
-      {
-        title: translate('auth.intro.step-3.title'),
-        subtitle: translate('auth.intro.step-3.subtitle'),
-        media: (
-          <UiImage
-            source={{ uri: 'https://picsum.photos/500' }}
-            className='h-[300px] w-[300px]'
-            contentFit={'contain'}
-          />
-        ),
-      },
+      // {
+      //   title: translate('auth.intro.step-3.title'),
+      //   subtitle: translate('auth.intro.step-3.subtitle'),
+      //   media: (
+      //     <UiImage
+      //       source={{ uri: 'https://picsum.photos/500' }}
+      //       className='h-[300px] w-[300px]'
+      //       contentFit={'contain'}
+      //     />
+      //   ),
+      // },
     ]
   }, [])
 

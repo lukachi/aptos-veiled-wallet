@@ -14,6 +14,8 @@ type Props = {
   pendingAmount: string
   actualAmount: string
 
+  isLoading?: boolean
+
   isNormalized: boolean
   isFrozen: boolean
   isRegistered: boolean
@@ -26,6 +28,9 @@ export default function VBCard({
   encryptionKey,
   pendingAmount,
   actualAmount,
+
+  isLoading,
+
   isNormalized,
   isFrozen,
   isRegistered,
@@ -35,6 +40,8 @@ export default function VBCard({
   ...rest
 }: Props) {
   const VBStatusContent = useMemo(() => {
+    if (isLoading) return
+
     const commonClasses =
       'z-10 -mb-8 flex flex-row justify-center items-center gap-2 overflow-hidden rounded-2xl bg-errorMain pb-10 pt-1'
 

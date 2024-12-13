@@ -65,6 +65,7 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
     withdraw,
 
     loadSelectedDecryptionKeyState,
+    decryptionKeyStatusLoadingState,
 
     txHistory,
     addTxHistoryItem,
@@ -85,7 +86,6 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
     setIsSubmitting(true)
     setIsRefreshing(true)
     try {
-      console.log('refresh')
       await Promise.all([loadSelectedDecryptionKeyState(), reloadAptBalance()])
     } catch (error) {
       ErrorHandler.processWithoutFeedback(error)
@@ -235,6 +235,7 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
         <VBCard
           className='flex gap-4'
           token={selectedToken}
+          isLoading={decryptionKeyStatusLoadingState === 'loading' || isRefreshing}
           encryptionKey={selectedAccountDecryptionKey.publicKey().toString()}
           pendingAmount={selectedAccountDecryptionKeyStatus.pendingAmount}
           actualAmount={selectedAccountDecryptionKeyStatus.actualAmount}
