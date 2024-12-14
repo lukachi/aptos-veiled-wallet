@@ -6,6 +6,6 @@ export const Config = {
     name: 'Mocked token',
     symbol: 'MTK',
     decimals: 0,
-    iconUri: '',
+    iconUri: 'https://picsum.photos/200',
   },
 }

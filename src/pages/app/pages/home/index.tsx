@@ -36,6 +36,7 @@ import UiSkeleton from '@/ui/UiSkeleton'
 
 import {
   ActionCircleButton,
+  TokenInfoBottomSheet,
   TransferBottomSheet,
   TxItem,
   useTransferBottomSheet,
@@ -77,6 +78,7 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
 
   const transferBottomSheet = useTransferBottomSheet()
   const withdrawBottomSheet = useWithdrawBottomSheet()
+  const tokenInfoBottomSheet = useUiBottomSheet()
 
   const isActionsDisabled = !selectedAccountDecryptionKeyStatus.isRegistered || isSubmitting
 
@@ -251,6 +253,13 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
 
         <View className='flex w-full flex-row items-center justify-center gap-8'>
           <ActionCircleButton
+            caption='Token Info'
+            disabled={isActionsDisabled}
+            onPress={() => tokenInfoBottomSheet.present()}
+          >
+            <UiIcon libIcon={'AntDesign'} name={'info'} size={32} className={'text-textPrimary'} />
+          </ActionCircleButton>
+          <ActionCircleButton
             caption='Withdraw'
             disabled={isActionsDisabled}
             onPress={() => withdrawBottomSheet.present()}
@@ -379,6 +388,7 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
 
         <WithdrawBottomSheet ref={withdrawBottomSheet.ref} onSubmit={tryWithdraw} />
         <TransferBottomSheet ref={transferBottomSheet.ref} onSubmit={tryTransfer} />
+        <TokenInfoBottomSheet ref={tokenInfoBottomSheet.ref} token={selectedToken} />
       </View>
     </UiScreenScrollable>
   )
