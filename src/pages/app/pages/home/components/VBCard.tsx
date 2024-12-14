@@ -85,7 +85,7 @@ export default function VBCard({
   return (
     <View className='relative'>
       {VBStatusContent}
-      <UiCard {...rest} className={cn('z-20', rest.className)}>
+      <UiCard {...rest} className={cn('z-20 flex gap-4', rest.className)}>
         <View className='flex flex-row items-center gap-2'>
           <Text className='text-textPrimary typography-subtitle2'>{token.name}</Text>
 

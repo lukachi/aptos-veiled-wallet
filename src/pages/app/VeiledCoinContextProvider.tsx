@@ -451,8 +451,8 @@ const useSelectedAccountDecryptionKeyStatus = (
 
   const perTokenStatusesRaw = useMemo(() => {
     return data.reduce(
-      (acc, { tokenAddress, ...rest }) => {
-        acc[tokenAddress] = rest
+      (acc, { tokenAddress: tokenAddr, ...rest }) => {
+        acc[tokenAddr] = rest
 
         return acc
       },

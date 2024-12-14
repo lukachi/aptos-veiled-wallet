@@ -170,7 +170,14 @@ export const TransferBottomSheet = forwardRef<TransferBottomSheetRef, Props>(
               <AuditorsList className='mt-3' control={control} />
             </View>
           </BottomSheetScrollView>
-          <View className='mt-auto pt-4' style={{ marginBottom: softInputKeyboardHeight }}>
+          <View
+            className='mt-auto pt-4'
+            style={{
+              paddingLeft: appPaddings.left,
+              paddingRight: appPaddings.right,
+              marginBottom: softInputKeyboardHeight,
+            }}
+          >
             <UiHorizontalDivider className='mb-4' />
             <UiButton
               className='transition-all duration-200'
