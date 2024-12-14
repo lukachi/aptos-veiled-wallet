@@ -21,6 +21,10 @@ loadSelectedTheme()
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync()
+SplashScreen.setOptions({
+  duration: 1000,
+  fade: true,
+})
 
 export default function App() {
   const [isAppInitialized, setIsAppInitialized] = useState(false)

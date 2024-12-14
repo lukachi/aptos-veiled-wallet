@@ -38,7 +38,7 @@ const BUNDLE_ID = 'com.lukachi.aptos.veiled.wallet' // ios bundle id
 const PACKAGE = 'com.lukachi.aptos.veiled.wallet' // android package name
 const NAME = 'aptos-veiled-wallet' // app name
 const EXPO_ACCOUNT_OWNER = 'lukachi' // expo account owner
-const EAS_PROJECT_ID = '' // eas project id
+const EAS_PROJECT_ID = '69f6b28e-f0ff-4dda-bca2-d9a3a72ad3de' // eas project id
 const SCHEME = 'AptosVeiledWallet' // app scheme
 
 /**

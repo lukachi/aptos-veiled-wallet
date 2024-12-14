@@ -1,21 +1,33 @@
-import { BottomSheetView } from '@gorhom/bottom-sheet'
+import { BottomSheetScrollView } from '@gorhom/bottom-sheet'
 import { forwardRef, useCallback, useImperativeHandle, useRef } from 'react'
-import { KeyboardAvoidingView, View } from 'react-native'
+import type { Control } from 'react-hook-form'
+import { useFieldArray } from 'react-hook-form'
+import type { ViewProps } from 'react-native'
+import { TouchableOpacity } from 'react-native'
+import { Text, View } from 'react-native'
+import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable'
+import Reanimated from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
+import { validateEncryptionKeyHex } from '@/api/modules/aptos'
 import { ErrorHandler, useSoftKeyboardEffect } from '@/core'
 import { useForm } from '@/hooks'
-import { useAppPaddings } from '@/theme'
+import { cn, useAppPaddings } from '@/theme'
 import {
   ControlledUiTextField,
   UiBottomSheet,
   UiButton,
   UiHorizontalDivider,
+  UiIcon,
   useUiBottomSheet,
 } from '@/ui'
 
 type Props = {
-  onSubmit: (receiverEncryptionKeyHex: string, amount: number) => Promise<void>
+  onSubmit: (
+    receiverEncryptionKeyHex: string,
+    amount: number,
+    auditorsEncryptionKeyHexList?: string[],
+  ) => Promise<void>
 }
 
 type TransferBottomSheetRef = {
@@ -58,11 +70,19 @@ export const TransferBottomSheet = forwardRef<TransferBottomSheetRef, Props>(
       {
         receiverEncryptionKey: '',
         amount: '',
+        auditorsEncryptionKeysHex: [] as string[],
       },
       yup =>
         yup.object().shape({
           receiverEncryptionKey: yup.string().required('Enter receiver'),
           amount: yup.number().required('Enter amount'),
+          auditorsEncryptionKeysHex: yup.array().of(
+            yup.string().test('Invalid encryption key', v => {
+              if (!v) return false
+
+              return validateEncryptionKeyHex(v)
+            }),
+          ),
         }),
     )
 
@@ -76,7 +96,11 @@ export const TransferBottomSheet = forwardRef<TransferBottomSheetRef, Props>(
         handleSubmit(async formData => {
           disableForm()
           try {
-            await onSubmit(formData.receiverEncryptionKey, Number(formData.amount))
+            await onSubmit(
+              formData.receiverEncryptionKey,
+              Number(formData.amount),
+              formData.auditorsEncryptionKeysHex,
+            )
             clearForm()
           } catch (error) {
             ErrorHandler.process(error)
@@ -104,18 +128,19 @@ export const TransferBottomSheet = forwardRef<TransferBottomSheetRef, Props>(
       [bottomSheet, setValue],
     )
 
-    useSoftKeyboardEffect()
+    const { softInputKeyboardHeight } = useSoftKeyboardEffect(50)
 
     return (
       <UiBottomSheet
         ref={bottomSheet.ref}
         title='Transfer'
         isCloseDisabled={isFormDisabled}
-        snapPoints={['50%', '75%']}
+        snapPoints={['100%']}
       >
-        <BottomSheetView style={{ flex: 1, paddingBottom: insets.bottom }}>
-          <KeyboardAvoidingView>
+        <View className='flex-1' style={{ paddingBottom: insets.bottom }}>
+          <BottomSheetScrollView style={{ flex: 1 }}>
             <View
+              className='flex gap-3'
               style={{
                 paddingLeft: appPaddings.left,
                 paddingRight: appPaddings.right,
@@ -142,16 +167,97 @@ export const TransferBottomSheet = forwardRef<TransferBottomSheetRef, Props>(
                 />
               </View>
 
-              {/*TODO: add auditors*/}
-
-              <View className='mt-auto pt-4'>
-                <UiHorizontalDivider className='mb-4' />
-                <UiButton title='Send' onPress={submit} disabled={isFormDisabled} />
-              </View>
+              <AuditorsList className='mt-3' control={control} />
             </View>
-          </KeyboardAvoidingView>
-        </BottomSheetView>
+          </BottomSheetScrollView>
+          <View className='mt-auto pt-4' style={{ marginBottom: softInputKeyboardHeight }}>
+            <UiHorizontalDivider className='mb-4' />
+            <UiButton
+              className='transition-all duration-200'
+              title='Send'
+              onPress={submit}
+              disabled={isFormDisabled}
+            />
+          </View>
+        </View>
       </UiBottomSheet>
     )
   },
 )
+
+const AuditorsList = ({
+  control,
+  ...rest
+}: {
+  control: Control<{
+    receiverEncryptionKey: string
+    amount: string
+    auditorsEncryptionKeysHex: string[]
+  }>
+} & ViewProps) => {
+  const { fields, append, remove } = useFieldArray({
+    control: control!,
+    // @ts-ignore
+    name: 'auditorsEncryptionKeysHex',
+  })
+
+  const addAuditor = () => {
+    append('')
+  }
+
+  const removeAuditor = (index: number) => {
+    remove(index)
+  }
+
+  return (
+    <View {...rest} className={cn('flex gap-2', rest.className)}>
+      <Text className='uppercase text-textPrimary typography-caption2'>Add auditors</Text>
+
+      <View className='flex gap-3'>
+        {fields.map((field, index) => (
+          <Swipeable
+            key={field.id}
+            friction={2}
+            enableTrackpadTwoFingerGesture
+            rightThreshold={40}
+            leftThreshold={40}
+            renderRightActions={() => (
+              <Reanimated.View>
+                <View className='flex h-full flex-row items-center'>
+                  <TouchableOpacity
+                    className='flex min-w-[60] items-center justify-center self-stretch bg-errorMain'
+                    onPress={() => removeAuditor(index)}
+                  >
+                    <UiIcon
+                      libIcon={'FontAwesome'}
+                      name='trash'
+                      size={24}
+                      className='text-baseWhite'
+                    />
+                  </TouchableOpacity>
+                </View>
+              </Reanimated.View>
+            )}
+          >
+            <View className='min-h-[60] bg-backgroundPure'>
+              <ControlledUiTextField
+                {...field}
+                control={control}
+                name={`auditorsEncryptionKeysHex.${index}`}
+                label={`Auditor ${index + 1}`}
+                placeholder='Enter auditor encryption key'
+              />
+            </View>
+          </Swipeable>
+        ))}
+        <UiButton
+          title='Add Auditor'
+          onPress={addAuditor}
+          className='mt-3'
+          size='small'
+          variant='outlined'
+        />
+      </View>
+    </View>
+  )
+}

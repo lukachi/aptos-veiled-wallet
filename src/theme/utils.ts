@@ -70,6 +70,7 @@ export const useAppTheme = () => {
   }[selectedTheme]
 
   return {
+    selectedTheme,
     palette,
     typography,
   }

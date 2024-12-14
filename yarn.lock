@@ -69,7 +69,7 @@ __metadata:
 
 "@aptos-labs/ts-sdk@file:../../aptos-ts-sdk/aptos-labs-ts-sdk-1.27.1.tgz::locator=aptos-veiled-wallet%40workspace%3A.":
   version: 1.27.1
-  resolution: "@aptos-labs/ts-sdk@file:../../aptos-ts-sdk/aptos-labs-ts-sdk-1.27.1.tgz#../../aptos-ts-sdk/aptos-labs-ts-sdk-1.27.1.tgz::hash=29dc1a&locator=aptos-veiled-wallet%40workspace%3A."
+  resolution: "@aptos-labs/ts-sdk@file:../../aptos-ts-sdk/aptos-labs-ts-sdk-1.27.1.tgz#../../aptos-ts-sdk/aptos-labs-ts-sdk-1.27.1.tgz::hash=9aa2cc&locator=aptos-veiled-wallet%40workspace%3A."
   dependencies:
     "@aptos-labs/aptos-cli": "npm:^0.2.0"
     "@aptos-labs/aptos-client": "npm:^0.1.1"
@@ -83,7 +83,7 @@ __metadata:
     js-base64: "npm:^3.7.7"
     jwt-decode: "npm:^4.0.0"
     poseidon-lite: "npm:^0.2.0"
-  checksum: 10/3baab0ad22d11ac9e19579c441013ba311c93c8e6ef7b794219af739a6f205635c329cd66a4837d584546b0b0249f833fc4ff1c7ffc7f98ddf3abf085cad19c8
+  checksum: 10/344aabc9c3dff18481f7f18270987a4dda9c5a8e0cdd53983bfe096c2797cc42183d61720349cb8ae6b3dabcadf49b5749f846951a02f991610e6d99f9f4090a
   languageName: node
   linkType: hard
 

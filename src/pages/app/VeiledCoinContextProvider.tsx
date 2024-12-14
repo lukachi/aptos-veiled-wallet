@@ -62,7 +62,11 @@ type VeiledCoinContextType = {
   normalizeAccount: () => Promise<void>
   unfreezeAccount: () => Promise<void>
   rolloverAccount: () => Promise<void>
-  transfer: (receiverEncryptionKeyHex: string, amount: number) => Promise<void>
+  transfer: (
+    receiverEncryptionKeyHex: string,
+    amount: number,
+    auditorsEncryptionKeyHexList?: string[],
+  ) => Promise<void>
   withdraw: (amount: number) => Promise<void>
   deposit: (amount: number) => Promise<void>
   // TODO: rotate keys
@@ -441,7 +445,11 @@ export const VeiledCoinContextProvider = ({ children }: PropsWithChildren) => {
   )
 
   const transfer = useCallback(
-    async (receiverEncryptionKey: string, amount: number) => {
+    async (
+      receiverEncryptionKey: string,
+      amount: number,
+      auditorsEncryptionKeyHexList?: string[],
+    ) => {
       if (!actualVeiledBalance?.amountEncrypted) throw new TypeError('actual amount not loaded')
 
       await transferVeiledCoin(
@@ -450,7 +458,7 @@ export const VeiledCoinContextProvider = ({ children }: PropsWithChildren) => {
         actualVeiledBalance?.amountEncrypted,
         BigInt(amount),
         receiverEncryptionKey,
-        [], // TODO: add auditors
+        auditorsEncryptionKeyHexList ?? [], // TODO: add auditors
         selectedToken.address,
       )
     },

@@ -97,6 +97,16 @@ export const validatePrivateKeyHex = (privateKeyHex: string) => {
   }
 }
 
+export const validateEncryptionKeyHex = (encryptionKeyHex: string) => {
+  try {
+    const encryptionKey = new TwistedEd25519PublicKey(encryptionKeyHex)
+
+    return Boolean(encryptionKey.toString())
+  } catch (error) {
+    return false
+  }
+}
+
 export const decryptionKeyFromPrivateKey = (privateKeyHex: string) => {
   const account = accountFromPrivateKey(privateKeyHex)
 

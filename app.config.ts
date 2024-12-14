@@ -14,11 +14,6 @@ export default ({config}: ConfigContext): ExpoConfig => ({
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'automatic',
-  splash: {
-    image: './assets/splash.png',
-    resizeMode: 'cover',
-    backgroundColor: '#2E3C4B',
-  },
   updates: {
     fallbackToCacheTimeout: 0,
     url: `https://u.expo.dev/${Env.EAS_PROJECT_ID}`
@@ -75,6 +70,18 @@ export default ({config}: ConfigContext): ExpoConfig => ({
       "expo-secure-store",
       {
         "faceIDPermission": "Allow $(PRODUCT_NAME) to access your Face ID biometric data."
+      }
+    ],
+    [
+      "expo-splash-screen",
+      {
+        "backgroundColor": "#f5f6f6",
+        "image": "./assets/splash-icon.png",
+        "dark": {
+          "image": "./assets/splash-icon-dark.png",
+          "backgroundColor": "#111111"
+        },
+        "imageWidth": 200
       }
     ],
     [

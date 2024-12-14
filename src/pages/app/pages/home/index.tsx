@@ -155,10 +155,10 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
   }, [addTxHistoryItem, normalizeAccount, tryRefresh])
 
   const tryTransfer = useCallback(
-    async (receiverAddress: string, amount: number) => {
+    async (receiverAddress: string, amount: number, auditorsEncryptionKeyHexList?: string[]) => {
       setIsSubmitting(true)
       try {
-        await transfer(receiverAddress, amount)
+        await transfer(receiverAddress, amount, auditorsEncryptionKeyHexList)
         addTxHistoryItem({
           txType: 'transfer',
           createdAt: time().timestamp,
