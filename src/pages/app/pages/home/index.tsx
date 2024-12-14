@@ -99,8 +99,14 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
   const tryRollover = useCallback(async () => {
     setIsSubmitting(true)
     try {
-      await rolloverAccount()
+      const [normalizeTxReceipt, rolloverTxReceipt] = await rolloverAccount()
       addTxHistoryItem({
+        txHash: normalizeTxReceipt.hash,
+        txType: 'normalize',
+        createdAt: time().timestamp,
+      })
+      addTxHistoryItem({
+        txHash: rolloverTxReceipt.hash,
         txType: 'rollover',
         createdAt: time().timestamp,
       })
@@ -114,8 +120,9 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
   const tryUnfreeze = useCallback(async () => {
     setIsSubmitting(true)
     try {
-      await unfreezeAccount()
+      const txReceipt = await unfreezeAccount()
       addTxHistoryItem({
+        txHash: txReceipt.hash,
         txType: 'unfreeze',
         createdAt: time().timestamp,
       })
@@ -129,8 +136,9 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
   const tryRegister = useCallback(async () => {
     setIsSubmitting(true)
     try {
-      await registerAccountEncryptionKey(selectedToken.address)
+      const txReceipt = await registerAccountEncryptionKey(selectedToken.address)
       addTxHistoryItem({
+        txHash: txReceipt.hash,
         txType: 'register',
         createdAt: time().timestamp,
       })
@@ -144,8 +152,9 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
   const tryNormalize = useCallback(async () => {
     setIsSubmitting(true)
     try {
-      await normalizeAccount()
+      const txReceipt = await normalizeAccount()
       addTxHistoryItem({
+        txHash: txReceipt.hash,
         txType: 'normalize',
         createdAt: time().timestamp,
       })
@@ -160,8 +169,9 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
     async (receiverAddress: string, amount: number, auditorsEncryptionKeyHexList?: string[]) => {
       setIsSubmitting(true)
       try {
-        await transfer(receiverAddress, amount, auditorsEncryptionKeyHexList)
+        const txReceipt = await transfer(receiverAddress, amount, auditorsEncryptionKeyHexList)
         addTxHistoryItem({
+          txHash: txReceipt.hash,
           txType: 'transfer',
           createdAt: time().timestamp,
         })
@@ -179,8 +189,9 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
     async (amount: number) => {
       setIsSubmitting(true)
       try {
-        await withdraw(amount)
+        const txReceipt = await withdraw(amount)
         addTxHistoryItem({
+          txHash: txReceipt.hash,
           txType: 'withdraw',
           createdAt: time().timestamp,
         })
@@ -197,9 +208,15 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
   const tryTestMint = useCallback(async () => {
     setIsSubmitting(true)
     try {
-      await testMintTokens()
+      const [mintTxReceipt, depositTxReceipt] = await testMintTokens()
       addTxHistoryItem({
+        txHash: mintTxReceipt.hash,
         txType: 'mint',
+        createdAt: time().timestamp,
+      })
+      addTxHistoryItem({
+        txHash: depositTxReceipt.hash,
+        txType: 'deposit',
         createdAt: time().timestamp,
       })
       await tryRefresh()
@@ -371,8 +388,8 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
 
             {txHistory.length ? (
               <View className='flex gap-6'>
-                {txHistory.map((el, idx) => (
-                  <TxItem key={idx} txType={el.txType} createdAt={el.createdAt} />
+                {txHistory.reverse().map((el, idx) => (
+                  <TxItem key={idx} {...el} />
                 ))}
               </View>
             ) : (

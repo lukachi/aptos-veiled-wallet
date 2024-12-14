@@ -1,13 +1,15 @@
-import { Text, View, type ViewProps } from 'react-native'
+import { Text, TouchableOpacity, View, type ViewProps } from 'react-native'
 
 import { formatDateDMYT } from '@/helpers'
+import { useCopyToClipboard } from '@/hooks'
 import { type TxHistoryItem } from '@/store'
 import { cn } from '@/theme'
 import { UiIcon } from '@/ui'
 
 type Props = TxHistoryItem & ViewProps
 
-export default function TxItem({ createdAt, txType, ...rest }: Props) {
+export default function TxItem({ createdAt, txType, txHash, ...rest }: Props) {
+  console.log('txHash', txHash)
   const message = {
     transfer: 'Transfer',
     deposit: 'Deposit',
@@ -69,6 +71,8 @@ export default function TxItem({ createdAt, txType, ...rest }: Props) {
     ),
   }[txType]
 
+  const { isCopied, copy } = useCopyToClipboard()
+
   return (
     <View {...rest} className={cn('flex flex-row gap-4', rest.className)}>
       <View className='flex size-[48] items-center justify-center rounded-full bg-componentSelected'>
@@ -78,6 +82,15 @@ export default function TxItem({ createdAt, txType, ...rest }: Props) {
         {createdAt && <Text className='text-textPrimary'>{formatDateDMYT(createdAt)}</Text>}
         <Text className='text-textPrimary'>{message}</Text>
       </View>
+
+      <TouchableOpacity className='ml-auto p-2' onPress={() => copy(txHash)}>
+        <UiIcon
+          libIcon={'AntDesign'}
+          name={isCopied ? 'check' : 'copy1'}
+          size={18}
+          className='text-textPrimary'
+        />
+      </TouchableOpacity>
     </View>
   )
 }

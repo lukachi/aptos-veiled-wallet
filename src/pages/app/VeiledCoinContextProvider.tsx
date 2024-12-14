@@ -1,4 +1,4 @@
-import type { Ed25519Account, VeiledAmount } from '@aptos-labs/ts-sdk'
+import type { CommittedTransactionResponse, Ed25519Account, VeiledAmount } from '@aptos-labs/ts-sdk'
 import { TwistedEd25519PrivateKey } from '@aptos-labs/ts-sdk'
 import type { PropsWithChildren } from 'react'
 import { useCallback } from 'react'
@@ -82,23 +82,23 @@ type VeiledCoinContextType = {
   selectedAccountDecryptionKey: TwistedEd25519PrivateKey
   selectedAccountDecryptionKeyStatus: AccountDecryptionKeyStatus
 
-  registerAccountEncryptionKey: (tokenAddress: string) => Promise<void>
-  normalizeAccount: () => Promise<void>
-  unfreezeAccount: () => Promise<void>
-  rolloverAccount: () => Promise<void>
+  registerAccountEncryptionKey: (tokenAddress: string) => Promise<CommittedTransactionResponse>
+  normalizeAccount: () => Promise<CommittedTransactionResponse>
+  unfreezeAccount: () => Promise<CommittedTransactionResponse>
+  rolloverAccount: () => Promise<CommittedTransactionResponse[]>
   transfer: (
     receiverEncryptionKeyHex: string,
     amount: number,
     auditorsEncryptionKeyHexList?: string[],
-  ) => Promise<void>
-  withdraw: (amount: number) => Promise<void>
-  deposit: (amount: number) => Promise<void>
+  ) => Promise<CommittedTransactionResponse>
+  withdraw: (amount: number) => Promise<CommittedTransactionResponse>
+  deposit: (amount: number) => Promise<CommittedTransactionResponse>
   // TODO: rotate keys
 
   decryptionKeyStatusLoadingState: DecryptionKeyStatusLoadingState
   loadSelectedDecryptionKeyState: () => Promise<void>
 
-  testMintTokens: () => Promise<void>
+  testMintTokens: () => Promise<CommittedTransactionResponse[]>
 }
 
 const veiledCoinContext = createContext<VeiledCoinContextType>({
@@ -131,18 +131,18 @@ const veiledCoinContext = createContext<VeiledCoinContextType>({
     actualAmount: '0',
   },
 
-  registerAccountEncryptionKey: async () => {},
-  normalizeAccount: async () => {},
-  unfreezeAccount: async () => {},
-  rolloverAccount: async () => {},
-  transfer: async () => {},
-  withdraw: async () => {},
-  deposit: async () => {},
+  registerAccountEncryptionKey: async () => ({}) as CommittedTransactionResponse,
+  normalizeAccount: async () => ({}) as CommittedTransactionResponse,
+  unfreezeAccount: async () => ({}) as CommittedTransactionResponse,
+  rolloverAccount: async () => [] as CommittedTransactionResponse[],
+  transfer: async () => ({}) as CommittedTransactionResponse,
+  withdraw: async () => ({}) as CommittedTransactionResponse,
+  deposit: async () => ({}) as CommittedTransactionResponse,
 
   decryptionKeyStatusLoadingState: 'idle',
   loadSelectedDecryptionKeyState: async () => {},
 
-  testMintTokens: async () => {},
+  testMintTokens: async () => [] as CommittedTransactionResponse[],
 })
 
 export const useVeiledCoinContext = () => {
@@ -248,7 +248,7 @@ const useSelectedAccountDecryptionKey = () => {
   }, [selectedPrivateKeyHex])
 
   const registerAccountEncryptionKey = async (tokenAddress: string) => {
-    await registerVeiledBalance(
+    return registerVeiledBalance(
       selectedPrivateKeyHex,
       selectedAccountDecryptionKey.publicKey().toString(),
       tokenAddress,
@@ -528,7 +528,7 @@ const useSelectedAccountDecryptionKeyStatus = (
     if (!actualBalance?.amountEncrypted || !actualBalance?.amount)
       throw new TypeError('Pending amount is not loaded')
 
-    await normalizeVeiledBalance(
+    return normalizeVeiledBalance(
       selectedPrivateKeyHex,
       decryptionKeyHex,
       actualBalance.amountEncrypted,
@@ -537,7 +537,9 @@ const useSelectedAccountDecryptionKeyStatus = (
     )
   }
 
-  const unfreezeAccount = async () => {
+  // FIXME: implement
+  // @ts-ignore
+  const unfreezeAccount = async (): Promise<CommittedTransactionResponse> => {
     if (!decryptionKeyHex) throw new TypeError('Decryption key is not set')
 
     // TODO: implement me
@@ -547,7 +549,7 @@ const useSelectedAccountDecryptionKeyStatus = (
   const rolloverAccount = useCallback(async () => {
     if (!decryptionKeyHex) throw new TypeError('Decryption key is not set')
 
-    await safelyRolloverVeiledBalance(selectedPrivateKeyHex, decryptionKeyHex, tokenAddress)
+    return safelyRolloverVeiledBalance(selectedPrivateKeyHex, decryptionKeyHex, tokenAddress)
   }, [decryptionKeyHex, selectedPrivateKeyHex, tokenAddress])
 
   return {
@@ -612,7 +614,7 @@ export const VeiledCoinContextProvider = ({ children }: PropsWithChildren) => {
       if (!selectedAccountDecryptionKeyStatusRaw.actual?.amountEncrypted)
         throw new TypeError('actual amount not loaded')
 
-      await transferVeiledCoin(
+      return transferVeiledCoin(
         selectedAccount.privateKey.toString(),
         selectedAccountDecryptionKey.toString(),
         selectedAccountDecryptionKeyStatusRaw.actual.amountEncrypted,
@@ -635,7 +637,7 @@ export const VeiledCoinContextProvider = ({ children }: PropsWithChildren) => {
       if (!selectedAccountDecryptionKeyStatusRaw.actual?.amountEncrypted)
         throw new TypeError('actual amount not loaded')
 
-      await withdrawVeiledBalance(
+      return withdrawVeiledBalance(
         selectedAccount.privateKey.toString(),
         selectedAccountDecryptionKey.toString(),
         BigInt(amount),
@@ -653,7 +655,7 @@ export const VeiledCoinContextProvider = ({ children }: PropsWithChildren) => {
 
   const deposit = useCallback(
     async (amount: number) => {
-      await depositVeiledBalance(
+      return depositVeiledBalance(
         selectedAccount.privateKey.toString(),
         amount,
         selectedToken.address,
@@ -662,9 +664,11 @@ export const VeiledCoinContextProvider = ({ children }: PropsWithChildren) => {
     [selectedAccount.privateKey, selectedToken.address],
   )
 
-  const testMintTokens = useCallback(async () => {
-    await mintTokens(selectedAccount.privateKey.toString(), 10)
-    await deposit(10)
+  const testMintTokens = useCallback(async (): Promise<CommittedTransactionResponse[]> => {
+    const mintTxReceipt = await mintTokens(selectedAccount.privateKey.toString(), 10)
+    const depositTxReceipt = await deposit(10)
+
+    return [mintTxReceipt, depositTxReceipt]
   }, [deposit, selectedAccount.privateKey])
 
   return (

@@ -15,6 +15,7 @@ export type TokenBaseInfo = {
 }
 
 export type TxHistoryItem = {
+  txHash: string
   createdAt: TimeDate
   txType:
     | 'transfer'

@@ -22,7 +22,7 @@ import { genRangeProof, verifyRangeProof } from '@modules/range-proof'
 import { apiClient } from '@/api/client'
 import { Config } from '@/config'
 import { sleep } from '@/helpers'
-import { TokenBaseInfo } from '@/store'
+import { type TokenBaseInfo } from '@/store'
 
 const APTOS_NETWORK: Network = NetworkToNetworkName[Network.TESTNET]
 const config = new AptosConfig({ network: APTOS_NETWORK })
