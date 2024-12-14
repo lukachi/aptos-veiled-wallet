@@ -12,7 +12,7 @@ import type { ICarouselInstance } from 'react-native-reanimated-carousel'
 import Carousel from 'react-native-reanimated-carousel'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import { validateEncryptionKeyHex } from '@/api/modules/aptos'
+import { getFungibleAssetMetadata, validateEncryptionKeyHex } from '@/api/modules/aptos'
 import { ErrorHandler, useSoftKeyboardEffect } from '@/core'
 import { useForm } from '@/hooks'
 import { VBCard } from '@/pages/app/pages/home/components/index'
@@ -57,6 +57,28 @@ export default function VBCardsList({ isRefreshing, className, onRollover, ...re
   const progress = useSharedValue(0)
 
   const bottomSheet = useUiBottomSheet()
+
+  const findCarouselIndexOfCurrentToken = useCallback(() => {
+    const currentTokenIndex = tokens.findIndex(
+      token => token?.address.toLowerCase() === selectedToken.address.toLowerCase(),
+    )
+    return currentTokenIndex >= 0 ? currentTokenIndex : 0
+  }, [selectedToken.address, tokens])
+
+  useEffect(() => {
+    const carouselStartPoint = findCarouselIndexOfCurrentToken()
+
+    ref.current?.scrollTo({
+      /**
+       * Calculate the difference between the current index and the target index
+       * to ensure that the carousel scrolls to the nearest index
+       */
+      count: carouselStartPoint - progress.value,
+      animated: true,
+    })
+
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [])
 
   return (
     <View {...rest} className={cn('w-full flex-1 overflow-hidden pb-6', className)}>
@@ -137,8 +159,8 @@ export default function VBCardsList({ isRefreshing, className, onRollover, ...re
 
 const debouncedSearchToken = debounce(
   async (tokenAddressHex: string): Promise<TokenBaseInfo | undefined> => {
-    console.log('tokenAddressHex', tokenAddressHex)
     try {
+      return getFungibleAssetMetadata(tokenAddressHex)
     } catch (error) {
       return undefined
     }

@@ -22,6 +22,7 @@ import { genRangeProof, verifyRangeProof } from '@modules/range-proof'
 import { apiClient } from '@/api/client'
 import { Config } from '@/config'
 import { sleep } from '@/helpers'
+import { TokenBaseInfo } from '@/store'
 
 const APTOS_NETWORK: Network = NetworkToNetworkName[Network.TESTNET]
 const config = new AptosConfig({ network: APTOS_NETWORK })
@@ -402,4 +403,18 @@ export const refresh = async () => {
     access_token: string
     refresh_token: string
   }>('/integrations/decentralized-auth-svc/v1/refresh')
+}
+
+export const getFungibleAssetMetadata = async (tokenAddressHex: string): Promise<TokenBaseInfo> => {
+  const fungibleAsset = await aptos.getFungibleAssetMetadataByAssetType({
+    assetType: '0x123::test_coin::TestCoin',
+  })
+
+  return {
+    address: tokenAddressHex,
+    name: fungibleAsset.name,
+    symbol: fungibleAsset.symbol,
+    decimals: fungibleAsset.decimals,
+    iconUri: fungibleAsset.icon_uri || '',
+  }
 }
