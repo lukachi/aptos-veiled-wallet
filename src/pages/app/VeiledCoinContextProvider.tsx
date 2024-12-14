@@ -1,4 +1,4 @@
-import type { Ed25519Account } from '@aptos-labs/ts-sdk'
+import type { Ed25519Account, VeiledAmount } from '@aptos-labs/ts-sdk'
 import { TwistedEd25519PrivateKey } from '@aptos-labs/ts-sdk'
 import type { PropsWithChildren } from 'react'
 import { useCallback } from 'react'
@@ -33,6 +33,27 @@ type AccountDecryptionKeyStatus = {
   actualAmount: string
 }
 
+const AccountDecryptionKeyStatusRawDefault: Omit<
+  AccountDecryptionKeyStatus,
+  'pendingAmount' | 'actualAmount'
+> & { pending: VeiledAmount | undefined; actual: VeiledAmount | undefined } = {
+  isFrozen: false,
+  isNormalized: false,
+  isRegistered: false,
+
+  pending: undefined,
+  actual: undefined,
+}
+
+const AccountDecryptionKeyStatusDefault: AccountDecryptionKeyStatus = {
+  isFrozen: false,
+  isNormalized: false,
+  isRegistered: false,
+
+  pendingAmount: '0',
+  actualAmount: '0',
+}
+
 type DecryptionKeyStatusLoadingState = 'idle' | 'loading' | 'success' | 'error'
 
 type VeiledCoinContextType = {
@@ -48,12 +69,15 @@ type VeiledCoinContextType = {
   reloadAptBalance: () => Promise<void>
 
   tokens: TokenBaseInfo[]
+  perTokenStatuses: Record<string, AccountDecryptionKeyStatus>
+
   selectedToken: TokenBaseInfo
 
   addToken: (token: TokenBaseInfo) => void
   removeToken: (address: string) => void
   txHistory: TxHistoryItem[]
   addTxHistoryItem: (details: TxHistoryItem) => void
+  setSelectedTokenAddress: (tokenAddress: string) => void
 
   selectedAccountDecryptionKey: TwistedEd25519PrivateKey
   selectedAccountDecryptionKeyStatus: AccountDecryptionKeyStatus
@@ -89,12 +113,14 @@ const veiledCoinContext = createContext<VeiledCoinContextType>({
   reloadAptBalance: async () => {},
 
   tokens: [],
+  perTokenStatuses: {},
   selectedToken: Config.DEFAULT_TOKEN as TokenBaseInfo,
   txHistory: [],
   addTxHistoryItem: () => {},
 
   addToken: () => {},
   removeToken: () => {},
+  setSelectedTokenAddress: () => {},
 
   selectedAccountDecryptionKey: TwistedEd25519PrivateKey.generate(),
   selectedAccountDecryptionKeyStatus: {
@@ -248,11 +274,19 @@ const useTokens = (decryptionKeyHex: string | undefined) => {
 
   const selectedTokenAddress = walletStore.useSelectedTokenAddress()
 
-  const tokens = useMemo(() => {
-    if (!decryptionKeyHex) return []
+  const savedTokensPerDK = useMemo(
+    () =>
+      decryptionKeyHex ? tokensStoreManager.tokensListToDecryptionKeyHexMap[decryptionKeyHex] : [],
+    [decryptionKeyHex, tokensStoreManager.tokensListToDecryptionKeyHexMap],
+  )
 
-    return tokensStoreManager.tokensListToDecryptionKeyHexMap[decryptionKeyHex] ?? []
-  }, [decryptionKeyHex, tokensStoreManager.tokensListToDecryptionKeyHexMap])
+  const tokens = useMemo(() => {
+    if (!savedTokensPerDK?.length) {
+      return [Config.DEFAULT_TOKEN]
+    }
+
+    return [Config.DEFAULT_TOKEN, ...savedTokensPerDK]
+  }, [savedTokensPerDK])
 
   const selectedToken = useMemo(() => {
     if (!decryptionKeyHex || !tokens.length) return Config.DEFAULT_TOKEN
@@ -314,54 +348,165 @@ const useSelectedAccountDecryptionKeyStatus = (
   tokenAddress: string | undefined,
 ) => {
   const selectedPrivateKeyHex = walletStore.useSelectedPrivateKeyHex()
+  const tokensListToDecryptionKeyHexMap = walletStore.useWalletStore(
+    state => state.tokensListToDecryptionKeyHexMap,
+  )
 
-  const { data, isLoading, isLoadingError, isEmpty, reload } = useLoading(
-    undefined,
+  const currentTokensList = useMemo(() => {
+    if (!decryptionKeyHex) return []
+
+    const savedTokensPerDK = tokensListToDecryptionKeyHexMap?.[decryptionKeyHex]
+
+    if (!savedTokensPerDK?.length) {
+      return [Config.DEFAULT_TOKEN]
+    }
+
+    return [Config.DEFAULT_TOKEN, ...savedTokensPerDK]
+  }, [decryptionKeyHex, tokensListToDecryptionKeyHexMap])
+
+  const { data, isLoading, isLoadingError, isEmpty, reload } = useLoading<
+    {
+      tokenAddress: string
+      pending: VeiledAmount | undefined
+      actual: VeiledAmount | undefined
+      isRegistered: boolean
+      isNormalized: boolean
+      isFrozen: boolean
+    }[]
+  >(
+    [
+      {
+        tokenAddress: Config.DEFAULT_TOKEN.address,
+        ...AccountDecryptionKeyStatusRawDefault,
+      },
+    ],
     async () => {
-      if (!decryptionKeyHex) return undefined
+      if (!decryptionKeyHex || !currentTokensList.length)
+        return [
+          {
+            tokenAddress: Config.DEFAULT_TOKEN.address,
+            ...AccountDecryptionKeyStatusRawDefault,
+          },
+        ]
 
-      const isRegistered = await getIsAccountRegisteredWithToken(
-        selectedPrivateKeyHex,
-        tokenAddress,
+      const perTokenDetails: {
+        tokenAddress: string
+        pending: VeiledAmount | undefined
+        actual: VeiledAmount | undefined
+        isRegistered: boolean
+        isNormalized: boolean
+        isFrozen: boolean
+      }[] = await Promise.all(
+        currentTokensList.map(async el => {
+          try {
+            const isRegistered = await getIsAccountRegisteredWithToken(
+              selectedPrivateKeyHex,
+              el.address,
+            )
+
+            if (isRegistered) {
+              const [{ pending, actual }, isNormalized, isFrozen] = await Promise.all([
+                getVeiledBalances(selectedPrivateKeyHex, decryptionKeyHex, el.address),
+                getIsBalanceNormalized(selectedPrivateKeyHex, el.address),
+                getIsBalanceFrozen(selectedPrivateKeyHex, el.address),
+              ])
+
+              return {
+                tokenAddress: el.address,
+                pending,
+                actual,
+                isRegistered,
+                isNormalized,
+                isFrozen,
+              }
+            }
+
+            return {
+              tokenAddress: el.address,
+              pending: undefined,
+              actual: undefined,
+              isRegistered,
+              isNormalized: false,
+              isFrozen: false,
+            }
+          } catch (e) {
+            return {
+              tokenAddress: el.address,
+              pending: undefined,
+              actual: undefined,
+              isRegistered: false,
+              isNormalized: false,
+              isFrozen: false,
+            }
+          }
+        }),
       )
 
-      if (isRegistered) {
-        const [{ pending, actual }, isNormalized, isFrozen] = await Promise.all([
-          getVeiledBalances(selectedPrivateKeyHex, decryptionKeyHex, tokenAddress),
-          getIsBalanceNormalized(selectedPrivateKeyHex, tokenAddress),
-          getIsBalanceFrozen(selectedPrivateKeyHex, tokenAddress),
-        ])
-
-        return {
-          pending,
-          actual,
-          isRegistered,
-          isNormalized,
-          isFrozen,
-        }
-      }
-
-      return {
-        pending: undefined,
-        actual: undefined,
-        isRegistered,
-        isNormalized: undefined,
-        isFrozen: undefined,
-      }
+      return perTokenDetails
     },
     {
-      loadArgs: [selectedPrivateKeyHex],
+      loadArgs: [selectedPrivateKeyHex, currentTokensList],
     },
   )
 
-  const selectedAccountDecryptionKeyStatus = {
-    isFrozen: data?.isFrozen ?? false,
-    isNormalized: data?.isNormalized ?? false,
-    isRegistered: data?.isRegistered ?? false,
+  const perTokenStatusesRaw = useMemo(() => {
+    return data.reduce(
+      (acc, { tokenAddress, ...rest }) => {
+        acc[tokenAddress] = rest
 
-    pendingAmount: data?.pending?.amount?.toString() ?? '0',
-    actualAmount: data?.actual?.amount?.toString() ?? '0',
-  }
+        return acc
+      },
+      {} as Record<
+        string,
+        { pending: VeiledAmount | undefined; actual: VeiledAmount | undefined } & Omit<
+          AccountDecryptionKeyStatus,
+          'pendingAmount' | 'actualAmount'
+        >
+      >,
+    )
+  }, [data])
+
+  const perTokenStatuses = useMemo(() => {
+    return Object.entries(perTokenStatusesRaw)
+      .map<[string, AccountDecryptionKeyStatus]>(([key, value]) => {
+        const { pending, actual, ...rest } = value
+
+        return [
+          key,
+          {
+            ...rest,
+            pendingAmount: pending?.amount?.toString(),
+            actualAmount: actual?.amount?.toString(),
+          } as AccountDecryptionKeyStatus,
+        ]
+      })
+      .reduce(
+        (acc, [key, value]) => {
+          acc[key] = value
+
+          return acc
+        },
+        {} as Record<string, AccountDecryptionKeyStatus>,
+      )
+  }, [perTokenStatusesRaw])
+
+  const selectedAccountDecryptionKeyStatusRaw = useMemo(() => {
+    if (!perTokenStatusesRaw) return AccountDecryptionKeyStatusRawDefault
+
+    if (!tokenAddress) {
+      return perTokenStatusesRaw[Config.DEFAULT_TOKEN.address]
+    }
+
+    return perTokenStatusesRaw[tokenAddress]
+  }, [perTokenStatusesRaw, tokenAddress])
+
+  const selectedAccountDecryptionKeyStatus = useMemo(() => {
+    if (!perTokenStatuses) return AccountDecryptionKeyStatusDefault
+
+    if (!tokenAddress) return perTokenStatuses[Config.DEFAULT_TOKEN.address]
+
+    return perTokenStatuses[tokenAddress]
+  }, [perTokenStatuses, tokenAddress])
 
   const decryptionKeyStatusLoadingState = useMemo((): DecryptionKeyStatusLoadingState => {
     if (isLoading) return 'loading'
@@ -374,16 +519,20 @@ const useSelectedAccountDecryptionKeyStatus = (
   }, [isEmpty, isLoading, isLoadingError])
 
   const normalizeAccount = async () => {
-    if (!decryptionKeyHex) throw new TypeError('Decryption key is not set')
+    if (!decryptionKeyHex || !tokenAddress) throw new TypeError('Decryption key is not set')
 
-    if (!data?.actual?.amountEncrypted || !data?.actual?.amount)
+    const actualBalance = perTokenStatusesRaw[tokenAddress]?.actual
+
+    if (!actualBalance) throw new TypeError('actual balance not loaded')
+
+    if (!actualBalance?.amountEncrypted || !actualBalance?.amount)
       throw new TypeError('Pending amount is not loaded')
 
     await normalizeVeiledBalance(
       selectedPrivateKeyHex,
       decryptionKeyHex,
-      data.actual.amountEncrypted,
-      data.actual.amount,
+      actualBalance.amountEncrypted,
+      actualBalance.amount,
       tokenAddress,
     )
   }
@@ -402,11 +551,14 @@ const useSelectedAccountDecryptionKeyStatus = (
   }, [decryptionKeyHex, selectedPrivateKeyHex, tokenAddress])
 
   return {
-    pendingVeiledBalance: data?.pending,
-    actualVeiledBalance: data?.actual,
+    perTokenStatusesRaw,
+    perTokenStatuses,
+    selectedAccountDecryptionKeyStatusRaw,
     selectedAccountDecryptionKeyStatus,
+
     decryptionKeyStatusLoadingState,
     loadSelectedDecryptionKeyState: reload,
+
     normalizeAccount,
     unfreezeAccount,
     rolloverAccount,
@@ -427,13 +579,20 @@ export const VeiledCoinContextProvider = ({ children }: PropsWithChildren) => {
   const { selectedAccountDecryptionKey, registerAccountEncryptionKey } =
     useSelectedAccountDecryptionKey()
 
-  const { tokens, selectedToken, txHistory, addToken, removeToken, addTxHistoryItem } = useTokens(
-    selectedAccountDecryptionKey.toString(),
-  )
+  const {
+    tokens,
+    selectedToken,
+    txHistory,
+    addToken,
+    removeToken,
+    addTxHistoryItem,
+    setSelectedTokenAddress,
+  } = useTokens(selectedAccountDecryptionKey.toString())
 
   const {
-    actualVeiledBalance,
+    perTokenStatuses,
     decryptionKeyStatusLoadingState,
+    selectedAccountDecryptionKeyStatusRaw,
     selectedAccountDecryptionKeyStatus,
     loadSelectedDecryptionKeyState,
     normalizeAccount,
@@ -450,12 +609,13 @@ export const VeiledCoinContextProvider = ({ children }: PropsWithChildren) => {
       amount: number,
       auditorsEncryptionKeyHexList?: string[],
     ) => {
-      if (!actualVeiledBalance?.amountEncrypted) throw new TypeError('actual amount not loaded')
+      if (!selectedAccountDecryptionKeyStatusRaw.actual?.amountEncrypted)
+        throw new TypeError('actual amount not loaded')
 
       await transferVeiledCoin(
         selectedAccount.privateKey.toString(),
         selectedAccountDecryptionKey.toString(),
-        actualVeiledBalance?.amountEncrypted,
+        selectedAccountDecryptionKeyStatusRaw.actual.amountEncrypted,
         BigInt(amount),
         receiverEncryptionKey,
         auditorsEncryptionKeyHexList ?? [], // TODO: add auditors
@@ -463,27 +623,28 @@ export const VeiledCoinContextProvider = ({ children }: PropsWithChildren) => {
       )
     },
     [
-      actualVeiledBalance?.amountEncrypted,
       selectedAccount.privateKey,
       selectedAccountDecryptionKey,
+      selectedAccountDecryptionKeyStatusRaw.actual?.amountEncrypted,
       selectedToken.address,
     ],
   )
 
   const withdraw = useCallback(
     async (amount: number) => {
-      if (!actualVeiledBalance?.amountEncrypted) throw new TypeError('actual amount not loaded')
+      if (!selectedAccountDecryptionKeyStatusRaw.actual?.amountEncrypted)
+        throw new TypeError('actual amount not loaded')
 
       await withdrawVeiledBalance(
         selectedAccount.privateKey.toString(),
         selectedAccountDecryptionKey.toString(),
         BigInt(amount),
-        actualVeiledBalance?.amountEncrypted,
+        selectedAccountDecryptionKeyStatusRaw.actual.amountEncrypted,
         selectedToken.address,
       )
     },
     [
-      actualVeiledBalance?.amountEncrypted,
+      selectedAccountDecryptionKeyStatusRaw.actual?.amountEncrypted,
       selectedAccount.privateKey,
       selectedAccountDecryptionKey,
       selectedToken.address,
@@ -521,11 +682,13 @@ export const VeiledCoinContextProvider = ({ children }: PropsWithChildren) => {
         reloadAptBalance,
 
         tokens,
+        perTokenStatuses,
         selectedToken,
         txHistory,
         addToken,
         removeToken,
         addTxHistoryItem,
+        setSelectedTokenAddress,
 
         selectedAccountDecryptionKey,
         registerAccountEncryptionKey,

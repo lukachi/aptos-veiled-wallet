@@ -40,9 +40,9 @@ import {
   TxItem,
   useTransferBottomSheet,
   useWithdrawBottomSheet,
-  VBCard,
   WithdrawBottomSheet,
 } from './components'
+import VBCardsList from './components/VBCardsList'
 
 export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
   const insets = useSafeAreaInsets()
@@ -54,7 +54,7 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
   const {
     selectedToken,
 
-    selectedAccountDecryptionKey,
+    // selectedAccountDecryptionKey,
     selectedAccountDecryptionKeyStatus,
 
     registerAccountEncryptionKey,
@@ -65,7 +65,7 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
     withdraw,
 
     loadSelectedDecryptionKeyState,
-    decryptionKeyStatusLoadingState,
+    // decryptionKeyStatusLoadingState,
 
     txHistory,
     addTxHistoryItem,
@@ -232,18 +232,21 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
           <UiSkeleton className='mx-auto mb-4 h-[16] w-[80%] rounded-2xl bg-componentPressed' />
         )}
         <HomeHeader className='mb-6' />
-        <VBCard
-          className='flex gap-4'
-          token={selectedToken}
-          isLoading={decryptionKeyStatusLoadingState === 'loading' || isRefreshing}
-          encryptionKey={selectedAccountDecryptionKey.publicKey().toString()}
-          pendingAmount={selectedAccountDecryptionKeyStatus.pendingAmount}
-          actualAmount={selectedAccountDecryptionKeyStatus.actualAmount}
-          isNormalized={selectedAccountDecryptionKeyStatus.isNormalized}
-          isFrozen={selectedAccountDecryptionKeyStatus.isFrozen}
-          isRegistered={selectedAccountDecryptionKeyStatus.isRegistered}
-          onRollover={tryRollover}
-        />
+
+        <VBCardsList isRefreshing={isRefreshing} onRollover={tryRollover} />
+
+        {/*<VBCard*/}
+        {/*  className='flex gap-4'*/}
+        {/*  token={selectedToken}*/}
+        {/*  isLoading={decryptionKeyStatusLoadingState === 'loading' || isRefreshing}*/}
+        {/*  encryptionKey={selectedAccountDecryptionKey.publicKey().toString()}*/}
+        {/*  pendingAmount={selectedAccountDecryptionKeyStatus.pendingAmount}*/}
+        {/*  actualAmount={selectedAccountDecryptionKeyStatus.actualAmount}*/}
+        {/*  isNormalized={selectedAccountDecryptionKeyStatus.isNormalized}*/}
+        {/*  isFrozen={selectedAccountDecryptionKeyStatus.isFrozen}*/}
+        {/*  isRegistered={selectedAccountDecryptionKeyStatus.isRegistered}*/}
+        {/*  onRollover={tryRollover}*/}
+        {/*/>*/}
         <UiHorizontalDivider className='my-4' />
 
         <View className='flex w-full flex-row items-center justify-center gap-8'>

@@ -78,7 +78,7 @@ export default function VBCard({
     }
 
     return
-  }, [isFrozen, isNormalized, isRegistered])
+  }, [isFrozen, isLoading, isNormalized, isRegistered])
 
   const { copy, isCopied } = useCopyToClipboard()
 
