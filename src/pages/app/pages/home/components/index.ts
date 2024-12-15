@@ -1,4 +1,5 @@
 export { default as ActionCircleButton } from './ActionCircleButton'
+export { default as HomeHeader } from './HomeHeader'
 export * from './TokenInfoBottomSheet'
 export * from './TransferBottomSheet'
 export { default as TxItem } from './TxItem'

@@ -1,8 +1,8 @@
-import { BottomSheetScrollView } from '@gorhom/bottom-sheet'
+import { BottomSheetView } from '@gorhom/bottom-sheet'
 import { forwardRef, useCallback, useImperativeHandle, useRef } from 'react'
 import type { Control } from 'react-hook-form'
 import { useFieldArray } from 'react-hook-form'
-import type { ViewProps } from 'react-native'
+import { ViewProps } from 'react-native'
 import { TouchableOpacity } from 'react-native'
 import { Text, View } from 'react-native'
 import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable'
@@ -21,6 +21,7 @@ import {
   UiIcon,
   useUiBottomSheet,
 } from '@/ui'
+import { ScrollView } from 'react-native-gesture-handler'
 
 type Props = {
   onSubmit: (
@@ -128,54 +129,54 @@ export const TransferBottomSheet = forwardRef<TransferBottomSheetRef, Props>(
       [bottomSheet, setValue],
     )
 
-    const { softInputKeyboardHeight } = useSoftKeyboardEffect(50)
+    const { softInputKeyboardHeight } = useSoftKeyboardEffect()
 
     return (
       <UiBottomSheet
         ref={bottomSheet.ref}
         title='Transfer'
         isCloseDisabled={isFormDisabled}
-        snapPoints={['100%']}
+        enableDynamicSizing
       >
-        <View className='flex-1' style={{ paddingBottom: insets.bottom }}>
-          <BottomSheetScrollView style={{ flex: 1 }}>
-            <View
-              className='flex gap-3'
-              style={{
-                paddingLeft: appPaddings.left,
-                paddingRight: appPaddings.right,
-              }}
-            >
-              <UiHorizontalDivider className='my-4' />
+        <BottomSheetView
+          style={{
+            display: 'flex',
+            flex: 1,
+            gap: 12,
+            paddingLeft: appPaddings.right,
+            paddingRight: appPaddings.right,
+          }}
+        >
+          <UiHorizontalDivider className='my-4' />
 
-              <View className='flex gap-4'>
-                <ControlledUiTextField
-                  control={control}
-                  name={'receiverEncryptionKey'}
-                  label='Receiver'
-                  placeholder='Enter encryption key'
-                  disabled={isFormDisabled}
-                />
+          <View className='flex gap-4'>
+            <ControlledUiTextField
+              control={control}
+              name={'receiverEncryptionKey'}
+              label='Receiver'
+              placeholder='Enter encryption key'
+              disabled={isFormDisabled}
+            />
 
-                <ControlledUiTextField
-                  control={control}
-                  name={'amount'}
-                  label='Amount'
-                  placeholder='Enter amount'
-                  keyboardType='numeric'
-                  disabled={isFormDisabled}
-                />
-              </View>
+            <ControlledUiTextField
+              control={control}
+              name={'amount'}
+              label='Amount'
+              placeholder='Enter amount'
+              keyboardType='numeric'
+              disabled={isFormDisabled}
+            />
+          </View>
 
-              <AuditorsList className='mt-3' control={control} />
-            </View>
-          </BottomSheetScrollView>
+          <AuditorsList
+            className='mt-3 flex-1 rounded-3xl bg-backgroundPure p-4 shadow-md'
+            control={control}
+          />
+
           <View
             className='mt-auto pt-4'
             style={{
-              paddingLeft: appPaddings.left,
-              paddingRight: appPaddings.right,
-              marginBottom: softInputKeyboardHeight,
+              marginBottom: Math.max(softInputKeyboardHeight, insets.bottom),
             }}
           >
             <UiHorizontalDivider className='mb-4' />
@@ -186,7 +187,7 @@ export const TransferBottomSheet = forwardRef<TransferBottomSheetRef, Props>(
               disabled={isFormDisabled}
             />
           </View>
-        </View>
+        </BottomSheetView>
       </UiBottomSheet>
     )
   },
@@ -220,51 +221,53 @@ const AuditorsList = ({
     <View {...rest} className={cn('flex gap-2', rest.className)}>
       <Text className='uppercase text-textPrimary typography-caption2'>Add auditors</Text>
 
-      <View className='flex gap-3'>
-        {fields.map((field, index) => (
-          <Swipeable
-            key={field.id}
-            friction={2}
-            enableTrackpadTwoFingerGesture
-            rightThreshold={40}
-            leftThreshold={40}
-            renderRightActions={() => (
-              <Reanimated.View>
-                <View className='flex h-full flex-row items-center'>
-                  <TouchableOpacity
-                    className='flex min-w-[60] items-center justify-center self-stretch bg-errorMain'
-                    onPress={() => removeAuditor(index)}
-                  >
-                    <UiIcon
-                      libIcon={'FontAwesome'}
-                      name='trash'
-                      size={24}
-                      className='text-baseWhite'
-                    />
-                  </TouchableOpacity>
-                </View>
-              </Reanimated.View>
-            )}
-          >
-            <View className='min-h-[60] bg-backgroundPure'>
-              <ControlledUiTextField
-                {...field}
-                control={control}
-                name={`auditorsEncryptionKeysHex.${index}`}
-                label={`Auditor ${index + 1}`}
-                placeholder='Enter auditor encryption key'
-              />
-            </View>
-          </Swipeable>
-        ))}
-        <UiButton
-          title='Add Auditor'
-          onPress={addAuditor}
-          className='mt-3'
-          size='small'
-          variant='outlined'
-        />
-      </View>
+      <ScrollView style={[rest.style, { maxHeight: 500 }]}>
+        <View className='flex gap-3'>
+          {fields.map((field, index) => (
+            <Swipeable
+              key={field.id}
+              friction={2}
+              enableTrackpadTwoFingerGesture
+              rightThreshold={40}
+              leftThreshold={40}
+              renderRightActions={() => (
+                <Reanimated.View>
+                  <View className='flex h-full flex-row items-center'>
+                    <TouchableOpacity
+                      className='flex min-w-[60] items-center justify-center self-stretch bg-errorMain'
+                      onPress={() => removeAuditor(index)}
+                    >
+                      <UiIcon
+                        libIcon={'FontAwesome'}
+                        name='trash'
+                        size={24}
+                        className='text-baseWhite'
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </Reanimated.View>
+              )}
+            >
+              <View className='min-h-[60] bg-backgroundPure'>
+                <ControlledUiTextField
+                  {...field}
+                  control={control}
+                  name={`auditorsEncryptionKeysHex.${index}`}
+                  label={`Auditor ${index + 1}`}
+                  placeholder='Enter auditor encryption key'
+                />
+              </View>
+            </Swipeable>
+          ))}
+          <UiButton
+            title='Add Auditor'
+            onPress={addAuditor}
+            className='mt-3'
+            size='small'
+            variant='outlined'
+          />
+        </View>
+      </ScrollView>
     </View>
   )
 }

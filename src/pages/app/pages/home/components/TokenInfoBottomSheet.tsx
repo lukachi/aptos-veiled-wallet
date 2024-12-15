@@ -1,5 +1,5 @@
 import type { BottomSheetModal } from '@gorhom/bottom-sheet'
-import { BottomSheetScrollView } from '@gorhom/bottom-sheet'
+import { BottomSheetView } from '@gorhom/bottom-sheet'
 import { type ComponentProps, forwardRef, useImperativeHandle } from 'react'
 import type { ViewProps } from 'react-native'
 import { Text, View } from 'react-native'
@@ -21,31 +21,27 @@ export const TokenInfoBottomSheet = forwardRef<BottomSheetModal, Props>(
     useImperativeHandle(ref, () => bottomSheet.ref.current as BottomSheetModal, [bottomSheet])
 
     return (
-      <UiBottomSheet {...rest} ref={bottomSheet.ref} title='Add Token' snapPoints={['50%']}>
-        <View className='flex-1' style={{ paddingBottom: insets.bottom }}>
-          <BottomSheetScrollView>
-            <View
-              className='flex gap-3'
-              style={{
-                paddingLeft: appPaddings.left,
-                paddingRight: appPaddings.right,
-              }}
-            >
-              <UiHorizontalDivider className='my-4' />
+      <UiBottomSheet {...rest} ref={bottomSheet.ref} title={token.name} enableDynamicSizing>
+        <BottomSheetView
+          style={{
+            paddingBottom: insets.bottom,
+            paddingLeft: appPaddings.left,
+            paddingRight: appPaddings.right,
+          }}
+        >
+          <UiHorizontalDivider className='my-4' />
 
-              {token && (
-                <View className='mt-3 flex gap-3'>
-                  {token.iconUri && (
-                    <UiImage source={{ uri: token.iconUri }} className='size-[75] rounded-full' />
-                  )}
-                  <TokenInfoItem label={'Name'} value={token.name} />
-                  <TokenInfoItem label={'Symbol'} value={token.symbol} />
-                  <TokenInfoItem label={'Decimals'} value={String(token.decimals)} />
-                </View>
+          {token && (
+            <View className='mt-3 flex gap-3'>
+              {token.iconUri && (
+                <UiImage source={{ uri: token.iconUri }} className='size-[75] rounded-full' />
               )}
+              <TokenInfoItem label={'Name'} value={token.name} />
+              <TokenInfoItem label={'Symbol'} value={token.symbol} />
+              <TokenInfoItem label={'Decimals'} value={String(token.decimals)} />
             </View>
-          </BottomSheetScrollView>
-        </View>
+          )}
+        </BottomSheetView>
       </UiBottomSheet>
     )
   },

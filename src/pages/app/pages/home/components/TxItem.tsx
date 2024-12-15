@@ -74,7 +74,7 @@ export default function TxItem({ createdAt, txType, txHash, ...rest }: Props) {
   const { isCopied, copy } = useCopyToClipboard()
 
   return (
-    <View {...rest} className={cn('flex flex-row gap-4', rest.className)}>
+    <View {...rest} className={cn('flex flex-row items-center gap-4', rest.className)}>
       <View className='flex size-[48] items-center justify-center rounded-full bg-componentSelected'>
         {icon}
       </View>
@@ -83,7 +83,7 @@ export default function TxItem({ createdAt, txType, txHash, ...rest }: Props) {
         <Text className='text-textPrimary'>{message}</Text>
       </View>
 
-      <TouchableOpacity className='ml-auto p-2' onPress={() => copy(txHash)}>
+      <TouchableOpacity className='ml-auto p-4' onPress={() => copy(txHash)}>
         <UiIcon
           libIcon={'AntDesign'}
           name={isCopied ? 'check' : 'copy1'}
