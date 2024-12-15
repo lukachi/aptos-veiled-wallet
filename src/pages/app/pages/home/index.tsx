@@ -85,6 +85,7 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
       const rolloverAccountTxReceipts = await rolloverAccount()
 
       rolloverAccountTxReceipts.forEach(el => {
+        // @ts-ignore
         if (el.payload.function.includes('rollover')) {
           addTxHistoryItem({
             txHash: el.hash,
