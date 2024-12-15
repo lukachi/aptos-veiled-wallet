@@ -2,9 +2,10 @@ import { BottomSheetView } from '@gorhom/bottom-sheet'
 import { forwardRef, useCallback, useImperativeHandle, useRef } from 'react'
 import type { Control } from 'react-hook-form'
 import { useFieldArray } from 'react-hook-form'
-import { ViewProps } from 'react-native'
+import type { ViewProps } from 'react-native'
 import { TouchableOpacity } from 'react-native'
 import { Text, View } from 'react-native'
+import { ScrollView } from 'react-native-gesture-handler'
 import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable'
 import Reanimated from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -21,7 +22,6 @@ import {
   UiIcon,
   useUiBottomSheet,
 } from '@/ui'
-import { ScrollView } from 'react-native-gesture-handler'
 
 type Props = {
   onSubmit: (
