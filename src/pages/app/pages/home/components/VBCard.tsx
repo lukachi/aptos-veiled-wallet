@@ -126,7 +126,7 @@ export default function VBCard({
           )}
         </View>
 
-        <CopyField label='Encryption Key' text={encryptionKey} className='' />
+        <CopyField label='Encryption Key' text={encryptionKey} />
       </UiCard>
     </View>
   )
@@ -138,18 +138,18 @@ function CopyField({ text, label, ...rest }: ViewProps & { text: string; label?:
   return (
     <View {...rest} className={cn('flex gap-2', rest.className)}>
       {label && <Text className='ml-4 text-textSecondary typography-body3'>{label}</Text>}
-      <View className={cn('flex flex-row items-center rounded-2xl bg-componentPrimary px-4')}>
+      <View
+        className={cn(
+          'flex flex-row items-center justify-between rounded-2xl bg-componentPrimary px-4 pr-0',
+        )}
+      >
         <Text className='line-clamp-1 flex-1 text-textPrimary typography-body2'>{text}</Text>
-        <TouchableOpacity
-          onPress={() => {
-            copy(text)
-          }}
-        >
+        <TouchableOpacity className='p-4' onPress={() => copy(text)}>
           <UiIcon
             libIcon='AntDesign'
             name={isCopied ? 'check' : 'copy1'}
             size={22}
-            className='p-4 pr-0 text-textSecondary'
+            className='text-textSecondary'
           />
         </TouchableOpacity>
       </View>
