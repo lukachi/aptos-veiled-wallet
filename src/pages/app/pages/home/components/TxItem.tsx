@@ -1,7 +1,7 @@
 import { Text, TouchableOpacity, View, type ViewProps } from 'react-native'
 
 import { formatDateDMYT } from '@/helpers'
-import { useCopyToClipboard } from '@/hooks'
+import { useCopyWithHaptics } from '@/hooks'
 import { type TxHistoryItem } from '@/store'
 import { cn } from '@/theme'
 import { UiIcon } from '@/ui'
@@ -71,7 +71,7 @@ export default function TxItem({ createdAt, txType, txHash, ...rest }: Props) {
     ),
   }[txType]
 
-  const { isCopied, copy } = useCopyToClipboard()
+  const { isCopied, copy } = useCopyWithHaptics()
 
   return (
     <View {...rest} className={cn('flex flex-row items-center gap-4', rest.className)}>

@@ -6,7 +6,7 @@ import { Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { ErrorHandler, useSoftKeyboardEffect } from '@/core'
-import { useCopyToClipboard, useForm } from '@/hooks'
+import { useCopyWithHaptics, useForm } from '@/hooks'
 import type { AuthStackScreenProps } from '@/route-types'
 import { authStore, walletStore } from '@/store'
 import { cn } from '@/theme'
@@ -32,7 +32,7 @@ export default function CreateWallet({ route }: Props) {
 
   const insets = useSafeAreaInsets()
 
-  const { isCopied, copy, fetchFromClipboard } = useCopyToClipboard()
+  const { isCopied, copy, fetchFromClipboard } = useCopyWithHaptics()
 
   const { formState, isFormDisabled, handleSubmit, disableForm, enableForm, control, setValue } =
     useForm(

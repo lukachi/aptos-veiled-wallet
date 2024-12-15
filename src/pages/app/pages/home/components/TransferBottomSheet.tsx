@@ -136,7 +136,7 @@ export const TransferBottomSheet = forwardRef<TransferBottomSheetRef, Props>(
         ref={bottomSheet.ref}
         title='Transfer'
         isCloseDisabled={isFormDisabled}
-        enableDynamicSizing
+        enableDynamicSizing={false}
       >
         <BottomSheetView
           style={{

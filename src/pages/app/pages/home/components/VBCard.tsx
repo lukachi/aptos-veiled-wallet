@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { Text, TouchableOpacity, View, type ViewProps } from 'react-native'
 
 import { formatBalance } from '@/helpers'
-import { useCopyToClipboard } from '@/hooks'
+import { useCopyWithHaptics } from '@/hooks'
 import { ActionCircleButton } from '@/pages/app/pages/home/components/index'
 import type { TokenBaseInfo } from '@/store'
 import { cn } from '@/theme'
@@ -81,7 +81,7 @@ export default function VBCard({
     return
   }, [isFrozen, isLoading, isNormalized, isRegistered])
 
-  const { copy, isCopied } = useCopyToClipboard()
+  const { copy, isCopied } = useCopyWithHaptics()
 
   return (
     <View className='relative'>
@@ -133,18 +133,22 @@ export default function VBCard({
 }
 
 function CopyField({ text, label, ...rest }: ViewProps & { text: string; label?: string }) {
-  const { isCopied, copy } = useCopyToClipboard()
+  const { isCopied, copy } = useCopyWithHaptics()
 
   return (
     <View {...rest} className={cn('flex gap-2', rest.className)}>
       {label && <Text className='ml-4 text-textSecondary typography-body3'>{label}</Text>}
       <View className={cn('flex flex-row items-center rounded-2xl bg-componentPrimary px-4')}>
         <Text className='line-clamp-1 flex-1 text-textPrimary typography-body2'>{text}</Text>
-        <TouchableOpacity onPress={() => copy(text)}>
+        <TouchableOpacity
+          onPress={() => {
+            copy(text)
+          }}
+        >
           <UiIcon
             libIcon='AntDesign'
             name={isCopied ? 'check' : 'copy1'}
-            size={16}
+            size={22}
             className='p-4 pr-0 text-textSecondary'
           />
         </TouchableOpacity>

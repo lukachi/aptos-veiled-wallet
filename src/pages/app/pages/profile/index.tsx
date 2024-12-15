@@ -1,10 +1,11 @@
 import { useCallback, useMemo } from 'react'
+import type { ViewProps } from 'react-native'
 import { Button, Text, TouchableOpacity, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { useSelectedLanguage } from '@/core'
 import { type Language, resources } from '@/core/localization/resources'
-import { useCopyToClipboard } from '@/hooks'
+import { useCopyWithHaptics } from '@/hooks'
 import type { AppTabScreenProps } from '@/route-types'
 import {
   authStore,
@@ -49,25 +50,35 @@ export default function ProfileScreen({}: AppTabScreenProps<'Profile'>) {
 function PrivateKeysOverview() {
   const privateKeyHexList = walletStore.useWalletStore(state => state.privateKeyHexList)
 
-  const { isCopied, copy } = useCopyToClipboard()
-
   return (
     <UiCard className={cn('flex items-center gap-1')}>
       <Text className='uppercase text-textPrimary typography-caption1'>Private keys</Text>
       {privateKeyHexList.map(el => (
-        <View key={el} className='flex flex-row items-center rounded-md px-4 py-2'>
-          <Text className='line-clamp-1 flex-1 text-textPrimary typography-body2'>{el}</Text>
-          <TouchableOpacity onPress={() => copy(el)}>
-            <UiIcon
-              libIcon='AntDesign'
-              name={isCopied ? 'check' : 'copy1'}
-              size={20}
-              className='p-4 text-textPrimary'
-            />
-          </TouchableOpacity>
-        </View>
+        <PrivateKeysOverviewItem key={el} privateKeyHex={el} />
       ))}
     </UiCard>
+  )
+}
+
+function PrivateKeysOverviewItem({
+  privateKeyHex,
+  className,
+  ...rest
+}: { privateKeyHex: string } & ViewProps) {
+  const { isCopied, copy } = useCopyWithHaptics()
+
+  return (
+    <View {...rest} className={cn('flex flex-row items-center rounded-md px-4 py-2', className)}>
+      <Text className='line-clamp-1 flex-1 text-textPrimary typography-body2'>{privateKeyHex}</Text>
+      <TouchableOpacity onPress={() => copy(privateKeyHex)}>
+        <UiIcon
+          libIcon='AntDesign'
+          name={isCopied ? 'check' : 'copy1'}
+          size={20}
+          className='p-4 text-textPrimary'
+        />
+      </TouchableOpacity>
+    </View>
   )
 }
 

@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { generatePrivateKeyHex, validatePrivateKeyHex } from '@/api/modules/aptos'
 import { ErrorHandler, useSoftKeyboardEffect } from '@/core'
 import { formatBalance } from '@/helpers'
-import { useCopyToClipboard, useForm } from '@/hooks'
+import { useCopyWithHaptics, useForm } from '@/hooks'
 import { useVeiledCoinContext } from '@/pages/app/VeiledCoinContextProvider'
 import { cn, useAppPaddings, useAppTheme } from '@/theme'
 import {
@@ -79,7 +79,12 @@ export default function HomeHeader({ className, ...rest }: ViewProps) {
         <Text className='uppercase text-textPrimary typography-caption1'>APT</Text>
       </View>
 
-      <UiBottomSheet title='Accounts' ref={accountsBottomSheet.ref} snapPoints={['75%']}>
+      <UiBottomSheet
+        title='Accounts'
+        ref={accountsBottomSheet.ref}
+        enableDynamicSizing={false}
+        snapPoints={['75%']}
+      >
         <BottomSheetView
           style={{
             flex: 1,
@@ -158,8 +163,8 @@ function AccountListItem({
     }
   })
 
-  const addrCopyManager = useCopyToClipboard()
-  const pkCopyManager = useCopyToClipboard()
+  const addrCopyManager = useCopyWithHaptics()
+  const pkCopyManager = useCopyWithHaptics()
 
   return (
     <Swipeable
@@ -279,7 +284,7 @@ const AddNewAccountBottomSheet = forwardRef<BottomSheetModal, AddNewAccountBotto
     const { softInputKeyboardHeight } = useSoftKeyboardEffect()
 
     return (
-      <UiBottomSheet {...rest} ref={bottomSheet.ref} title='Add Account' enableDynamicSizing>
+      <UiBottomSheet {...rest} ref={bottomSheet.ref} title='Add Account'>
         <BottomSheetView
           style={{
             display: 'flex',
@@ -290,15 +295,13 @@ const AddNewAccountBottomSheet = forwardRef<BottomSheetModal, AddNewAccountBotto
         >
           <UiHorizontalDivider className='my-4' />
 
-          <View className='flex gap-4'>
-            <ControlledUiTextField
-              control={control}
-              name={'privateKeyHex'}
-              label='Private Key'
-              placeholder='Enter private key'
-              disabled={isFormDisabled}
-            />
-          </View>
+          <ControlledUiTextField
+            control={control}
+            name={'privateKeyHex'}
+            label='Private Key'
+            placeholder='Enter private key'
+            disabled={isFormDisabled}
+          />
 
           <View
             className='mt-[50] pt-4'
