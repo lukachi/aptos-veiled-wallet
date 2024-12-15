@@ -19,7 +19,7 @@ import {
   UiButton,
   UiHorizontalDivider,
   UiIcon,
-  UiImage,
+  UiLogo,
   useUiBottomSheet,
 } from '@/ui'
 
@@ -61,7 +61,7 @@ export default function HomeHeader({ className, ...rest }: ViewProps) {
         paddingRight: appPaddings.right,
       }}
     >
-      <UiImage source={require('@assets/icon-dark.png')} style={{ width: 24, height: 24 }} />
+      <UiLogo />
 
       <TouchableOpacity className='mx-auto' onPress={() => accountsBottomSheet.present()}>
         <View className='flex flex-row items-center gap-2'>
