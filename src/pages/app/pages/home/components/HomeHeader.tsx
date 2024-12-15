@@ -1,3 +1,4 @@
+import { BN, time } from '@distributedlab/tools'
 import { type BottomSheetModal, BottomSheetScrollView, BottomSheetView } from '@gorhom/bottom-sheet'
 import { type ComponentProps, forwardRef, useCallback, useImperativeHandle } from 'react'
 import type { ViewProps } from 'react-native'
@@ -6,7 +7,7 @@ import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable'
 import Reanimated, { useAnimatedStyle } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import { generatePrivateKeyHex, validatePrivateKeyHex } from '@/api/modules/aptos'
+import { generatePrivateKeyHex, sendApt, validatePrivateKeyHex } from '@/api/modules/aptos'
 import { ErrorHandler, useSoftKeyboardEffect } from '@/core'
 import { formatBalance } from '@/helpers'
 import { useCopyWithHaptics, useForm } from '@/hooks'
@@ -36,6 +37,7 @@ export default function HomeHeader({ className, ...rest }: ViewProps) {
 
   const accountsBottomSheet = useUiBottomSheet()
   const addAccountBottomSheet = useUiBottomSheet()
+  const transferNativeBottomSheet = useUiBottomSheet()
 
   const handleAddNewAccount = useCallback(
     (privateKeyHex: string) => {
@@ -45,6 +47,10 @@ export default function HomeHeader({ className, ...rest }: ViewProps) {
     },
     [accountsBottomSheet, addAccountBottomSheet, addNewAccount],
   )
+
+  const handleTransferNative = useCallback(async () => {
+    transferNativeBottomSheet.dismiss()
+  }, [transferNativeBottomSheet])
 
   return (
     <View
@@ -72,12 +78,19 @@ export default function HomeHeader({ className, ...rest }: ViewProps) {
         </View>
       </TouchableOpacity>
 
-      <View className='flex flex-row items-center gap-2'>
-        <Text className='uppercase text-textPrimary typography-caption1'>
-          {formatBalance(aptBalance, 8)}
-        </Text>
-        <Text className='uppercase text-textPrimary typography-caption1'>APT</Text>
-      </View>
+      <TouchableOpacity
+        className='p-4 pr-0'
+        onPress={() => {
+          transferNativeBottomSheet.present()
+        }}
+      >
+        <View className='flex flex-row items-center gap-2'>
+          <Text className='uppercase text-textPrimary typography-caption1'>
+            {formatBalance(aptBalance, 8)}
+          </Text>
+          <Text className='uppercase text-textPrimary typography-caption1'>APT</Text>
+        </View>
+      </TouchableOpacity>
 
       <UiBottomSheet
         title='Accounts'
@@ -132,6 +145,11 @@ export default function HomeHeader({ className, ...rest }: ViewProps) {
       </UiBottomSheet>
 
       <AddNewAccountBottomSheet ref={addAccountBottomSheet.ref} onSubmit={handleAddNewAccount} />
+
+      <TransferNativeBottomSheet
+        ref={transferNativeBottomSheet.ref}
+        onSubmit={handleTransferNative}
+      />
     </View>
   )
 }
@@ -318,6 +336,128 @@ const AddNewAccountBottomSheet = forwardRef<BottomSheetModal, AddNewAccountBotto
                 onPress={() => onSubmit(generatePrivateKeyHex())}
                 disabled={isFormDisabled}
               />
+            </View>
+          </View>
+        </BottomSheetView>
+      </UiBottomSheet>
+    )
+  },
+)
+
+type TransferNativeBottomSheetProps = {
+  onSubmit: () => void
+} & Omit<ComponentProps<typeof UiBottomSheet>, 'children'>
+
+const TransferNativeBottomSheet = forwardRef<BottomSheetModal, TransferNativeBottomSheetProps>(
+  ({ onSubmit, ...rest }, ref) => {
+    const insets = useSafeAreaInsets()
+    const appPaddings = useAppPaddings()
+
+    const bottomSheet = useUiBottomSheet()
+
+    const { selectedAccount, aptBalance, addTxHistoryItem, reloadAptBalance } =
+      useVeiledCoinContext()
+
+    const { isFormDisabled, handleSubmit, disableForm, enableForm, control, setValue } = useForm(
+      {
+        receiverAccountAddress: '',
+        amount: '',
+      },
+      yup =>
+        yup.object().shape({
+          receiverAccountAddress: yup.string().required('Enter receiver address'),
+          amount: yup
+            .number()
+            .required('Enter amount')
+            .max(Number(BN.fromBigInt(aptBalance, 8).toString())),
+        }),
+    )
+
+    const clearForm = useCallback(() => {
+      setValue('receiverAccountAddress', '')
+      setValue('amount', '')
+    }, [setValue])
+
+    const submit = useCallback(
+      () =>
+        handleSubmit(async formData => {
+          disableForm()
+          try {
+            const txReceipt = await sendApt(
+              selectedAccount.privateKey.toString(),
+              formData.receiverAccountAddress,
+              formData.amount,
+            )
+            addTxHistoryItem({
+              txHash: txReceipt.hash,
+              txType: 'transfer-native',
+              createdAt: time().timestamp,
+            })
+            await reloadAptBalance()
+            onSubmit()
+            clearForm()
+          } catch (error) {
+            ErrorHandler.process(error)
+          }
+          enableForm()
+        })(),
+      [
+        addTxHistoryItem,
+        clearForm,
+        disableForm,
+        enableForm,
+        handleSubmit,
+        onSubmit,
+        reloadAptBalance,
+        selectedAccount.privateKey,
+      ],
+    )
+
+    useImperativeHandle(ref, () => (bottomSheet.ref.current as BottomSheetModal) || null, [
+      bottomSheet,
+    ])
+
+    const { softInputKeyboardHeight } = useSoftKeyboardEffect()
+
+    return (
+      <UiBottomSheet {...rest} ref={bottomSheet.ref} title='Send APT'>
+        <BottomSheetView
+          style={{
+            display: 'flex',
+            gap: 12,
+            paddingLeft: appPaddings.left,
+            paddingRight: appPaddings.right,
+            paddingBottom: insets.bottom,
+          }}
+        >
+          <UiHorizontalDivider className='my-4' />
+
+          <ControlledUiTextField
+            control={control}
+            name={'receiverAccountAddress'}
+            label='Account address'
+            placeholder='Enter account address'
+            disabled={isFormDisabled}
+          />
+
+          <ControlledUiTextField
+            control={control}
+            name={'amount'}
+            label='amount'
+            placeholder='Enter amount'
+            keyboardType='numbers-and-punctuation'
+            disabled={isFormDisabled}
+          />
+
+          <View
+            className='mt-[50] pt-4'
+            style={{
+              marginBottom: Math.max(softInputKeyboardHeight / 1.65, insets.bottom),
+            }}
+          >
+            <UiHorizontalDivider className='mb-4' />
+            <View className='flex gap-3'>
+              <UiButton title='Send' onPress={submit} disabled={isFormDisabled} />
             </View>
           </View>
         </BottomSheetView>

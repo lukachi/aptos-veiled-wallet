@@ -82,16 +82,24 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
   const tryRollover = useCallback(async () => {
     setIsSubmitting(true)
     try {
-      const [normalizeTxReceipt, rolloverTxReceipt] = await rolloverAccount()
-      addTxHistoryItem({
-        txHash: normalizeTxReceipt.hash,
-        txType: 'normalize',
-        createdAt: time().timestamp,
-      })
-      addTxHistoryItem({
-        txHash: rolloverTxReceipt.hash,
-        txType: 'rollover',
-        createdAt: time().timestamp,
+      const rolloverAccountTxReceipts = await rolloverAccount()
+
+      rolloverAccountTxReceipts.forEach(el => {
+        if (el.payload.function.includes('rollover')) {
+          addTxHistoryItem({
+            txHash: el.hash,
+            txType: 'rollover',
+            createdAt: time().timestamp,
+          })
+
+          return
+        }
+
+        addTxHistoryItem({
+          txHash: el.hash,
+          txType: 'normalize',
+          createdAt: time().timestamp,
+        })
       })
       await tryRefresh()
     } catch (error) {

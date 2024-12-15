@@ -9,9 +9,9 @@ import { UiIcon } from '@/ui'
 type Props = TxHistoryItem & ViewProps
 
 export default function TxItem({ createdAt, txType, txHash, ...rest }: Props) {
-  console.log('txHash', txHash)
   const message = {
     transfer: 'Transfer',
+    ['transfer-native']: 'Send APT',
     deposit: 'Deposit',
     withdraw: 'Withdraw',
     rollover: 'Rollover',
@@ -28,6 +28,14 @@ export default function TxItem({ createdAt, txType, txHash, ...rest }: Props) {
       <UiIcon
         libIcon={'AntDesign'}
         name={'arrowright'}
+        size={24}
+        className={cn('text-textPrimary')}
+      />
+    ),
+    ['transfer-native']: (
+      <UiIcon
+        libIcon={'FontAwesome6'}
+        name={'angle-right'}
         size={24}
         className={cn('text-textPrimary')}
       />

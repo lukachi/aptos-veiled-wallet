@@ -19,6 +19,7 @@ export type TxHistoryItem = {
   createdAt: TimeDate
   txType:
     | 'transfer'
+    | 'transfer-native'
     | 'deposit'
     | 'withdraw'
     | 'rollover'

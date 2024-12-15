@@ -17,6 +17,7 @@ import {
   VeiledCoin,
   VeiledWithdraw,
 } from '@aptos-labs/ts-sdk'
+import { BN } from '@distributedlab/tools'
 import { genRangeProof, verifyRangeProof } from '@modules/range-proof'
 
 import { apiClient } from '@/api/client'
@@ -417,4 +418,22 @@ export const getFungibleAssetMetadata = async (tokenAddressHex: string): Promise
     decimals: fungibleAsset.decimals,
     iconUri: fungibleAsset.icon_uri || '',
   }
+}
+
+export const sendApt = async (
+  privateKeyHex: string,
+  receiverAccountAddressHex: string,
+  humanAmount: string,
+) => {
+  const amount = BN.fromRaw(humanAmount, 8).value
+
+  const account = accountFromPrivateKey(privateKeyHex)
+
+  const sendAptTransaction = await aptos.coin.transferCoinTransaction({
+    sender: account.accountAddress,
+    recipient: receiverAccountAddressHex,
+    amount: BigInt(amount), // Ensure the amount is in bigint format
+  })
+
+  return sendAndWaitTx(sendAptTransaction, account)
 }
