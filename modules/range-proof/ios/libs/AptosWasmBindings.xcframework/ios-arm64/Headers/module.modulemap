@@ -1,4 +1,0 @@
-module aptos_wasm_bindingsFFI {
-    header "aptos_wasm_bindingsFFI.h"
-    export *
-}

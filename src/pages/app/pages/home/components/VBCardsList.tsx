@@ -50,8 +50,6 @@ export default function VBCardsList({ isRefreshing, className, onRollover, ...re
     addToken,
   } = useVeiledCoinContext()
 
-  console.log('tokens', tokens)
-
   const ref = useRef<ICarouselInstance>(null)
 
   const progress = useSharedValue(0)

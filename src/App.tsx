@@ -17,6 +17,8 @@ import { authStore, localAuthStore, walletStore } from '@/store'
 import { loadSelectedTheme } from '@/theme'
 import { Toasts } from '@/ui'
 
+import { setTableMap } from './api/modules/aptos'
+
 loadSelectedTheme()
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -48,6 +50,7 @@ export default function App() {
       // verifyInstallation()
       await initLocalAuthStore()
       initInterceptors()
+      await setTableMap()
     } catch (e) {
       setAppInitError(e)
       setIsAppInitializingFailed(true)

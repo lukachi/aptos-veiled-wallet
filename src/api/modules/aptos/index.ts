@@ -6,9 +6,11 @@ import {
   type CommittedTransactionResponse,
   Ed25519PrivateKey,
   type InputGenerateTransactionPayloadData,
+  KangarooRistretto,
   Network,
   NetworkToNetworkName,
   RangeProofExecutor,
+  TableMap,
   TransactionWorkerEventsEnum,
   TwistedEd25519PrivateKey,
   TwistedEd25519PublicKey,
@@ -17,8 +19,8 @@ import {
   VeiledCoin,
   VeiledWithdraw,
 } from '@aptos-labs/ts-sdk'
+import { genRangeProof, verifyRangeProof } from '@distributedlab/rn-range-proof'
 import { BN } from '@distributedlab/tools'
-import { genRangeProof, verifyRangeProof } from '@modules/range-proof'
 
 import { apiClient } from '@/api/client'
 import { Config } from '@/config'
@@ -315,10 +317,10 @@ export const depositVeiledBalance = async (
 }
 
 export const getIsAccountRegisteredWithToken = async (
-  privateKey: string,
+  privateKeyHex: string,
   tokenAddress = Config.DEFAULT_TOKEN.address,
 ) => {
-  const account = accountFromPrivateKey(privateKey)
+  const account = accountFromPrivateKey(privateKeyHex)
 
   const isRegistered = await aptos.veiledCoin.hasUserRegistered({
     accountAddress: account.accountAddress,
@@ -436,4 +438,50 @@ export const sendApt = async (
   })
 
   return sendAndWaitTx(sendAptTransaction, account)
+}
+
+export const setTableMap = async () => {
+  const [table16, table32, table48] = await Promise.all([
+    loadTableMap(
+      'https://raw.githubusercontent.com/distributed-lab/pollard-kangaroo-plus-testing/refs/heads/tables/output_8_8000_16_64.json',
+    ),
+    loadTableMap(
+      'https://raw.githubusercontent.com/distributed-lab/pollard-kangaroo-plus-testing/refs/heads/tables/output_2048_4000_32_128.json',
+    ),
+    loadTableMap(
+      'https://raw.githubusercontent.com/distributed-lab/pollard-kangaroo-plus-testing/refs/heads/tables/output_65536_40000_48_128.json',
+    ),
+  ])
+
+  KangarooRistretto.setTableWithParams({
+    table: table16,
+    n: 8_000,
+    w: 8n,
+    r: 64n,
+    secretSize: 16,
+  })
+  KangarooRistretto.setTableWithParams({
+    table: table32,
+    n: 4_000,
+    w: 2048n,
+    r: 128n,
+    secretSize: 32,
+  })
+  KangarooRistretto.setTableWithParams({
+    table: table48,
+    n: 40_000,
+    w: 65536n,
+    r: 128n,
+    secretSize: 48,
+  })
+}
+
+async function loadTableMap(url: string) {
+  const tableMapResponse = await fetch(url)
+
+  if (!tableMapResponse.ok) {
+    throw new TypeError('Failed to load table map')
+  }
+
+  return TableMap.createFromJson(JSON.stringify(await tableMapResponse.json()))
 }

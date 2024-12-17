@@ -45,6 +45,7 @@
     "@aptos-labs/ts-sdk": "../../aptos-ts-sdk/aptos-labs-ts-sdk-1.27.1.tgz",
     "@dev-plugins/react-navigation": "^0.0.6",
     "@dev-plugins/react-query": "^0.0.6",
+    "@distributedlab/rn-range-proof": "../../range-proof/distributedlab-rn-range-proof-0.1.0.tgz",
     "@distributedlab/tools": "^1.0.0-rc.16",
     "@gorhom/bottom-sheet": "^5.0.6",
     "@hookform/resolvers": "^3.9.0",
