@@ -1814,21 +1814,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@distributedlab/rn-range-proof@file:../../range-proof/distributedlab-rn-range-proof-0.1.0.tgz::locator=aptos-veiled-wallet%40workspace%3A.":
-  version: 0.1.0
-  resolution: "@distributedlab/rn-range-proof@file:../../range-proof/distributedlab-rn-range-proof-0.1.0.tgz#../../range-proof/distributedlab-rn-range-proof-0.1.0.tgz::hash=723d48&locator=aptos-veiled-wallet%40workspace%3A."
-  dependencies:
-    expo: "npm:~52.0.19"
-    react: "npm:18.3.1"
-    react-native: "npm:0.76.5"
-  peerDependencies:
-    expo: "*"
-    react: "*"
-    react-native: "*"
-  checksum: 10/dc44b7d95855b604fc053b44f3a8b94ce18433bdea3540957b4799f1184390cb53f395426460ea2b311f499bb21782a6c867f39b62d788ef6e4e38cb88f2d439
-  languageName: node
-  linkType: hard
-
 "@distributedlab/tools@npm:^1.0.0-rc.16":
   version: 1.0.0-rc.17
   resolution: "@distributedlab/tools@npm:1.0.0-rc.17"
@@ -3359,6 +3344,21 @@ __metadata:
     "@jridgewell/resolve-uri": "npm:^3.1.0"
     "@jridgewell/sourcemap-codec": "npm:^1.4.14"
   checksum: 10/dced32160a44b49d531b80a4a2159dceab6b3ddf0c8e95a0deae4b0e894b172defa63d5ac52a19c2068e1fe7d31ea4ba931fbeec103233ecb4208953967120fc
+  languageName: node
+  linkType: hard
+
+"@lukachi/rn-range-proof@npm:0.1.1":
+  version: 0.1.1
+  resolution: "@lukachi/rn-range-proof@npm:0.1.1"
+  dependencies:
+    expo: "npm:~52.0.19"
+    react: "npm:18.3.1"
+    react-native: "npm:0.76.5"
+  peerDependencies:
+    expo: "*"
+    react: "*"
+    react-native: "*"
+  checksum: 10/eb6d39bed0c5c362cc34ceeccd5c8e540754d618a05233b7a8307b703ab945868a06f9f1e86a47aacd8a4d296a690fb873fc581260d02bf92649faa84e7b6489
   languageName: node
   linkType: hard
 
@@ -5592,7 +5592,6 @@ __metadata:
     "@babel/core": "npm:^7.24.6"
     "@dev-plugins/react-navigation": "npm:^0.0.6"
     "@dev-plugins/react-query": "npm:^0.0.6"
-    "@distributedlab/rn-range-proof": ../../range-proof/distributedlab-rn-range-proof-0.1.0.tgz
     "@distributedlab/tools": "npm:^1.0.0-rc.16"
     "@expo/config": "npm:~10.0.5"
     "@expo/config-plugins": "npm:^9.0.11"
@@ -5600,6 +5599,7 @@ __metadata:
     "@expo/metro-runtime": "npm:~4.0.0"
     "@gorhom/bottom-sheet": "npm:^5.0.6"
     "@hookform/resolvers": "npm:^3.9.0"
+    "@lukachi/rn-range-proof": "npm:0.1.1"
     "@react-native-community/eslint-config": "npm:^3.2.0"
     "@react-native-community/hooks": "npm:^3.0.0"
     "@react-native/js-polyfills": "npm:^0.74.85"

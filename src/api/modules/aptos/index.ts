@@ -19,8 +19,8 @@ import {
   VeiledCoin,
   VeiledWithdraw,
 } from '@aptos-labs/ts-sdk'
-import { genRangeProof, verifyRangeProof } from '@distributedlab/rn-range-proof'
 import { BN } from '@distributedlab/tools'
+import { genRangeProof, verifyRangeProof } from '@lukachi/rn-range-proof'
 
 import { apiClient } from '@/api/client'
 import { Config } from '@/config'
