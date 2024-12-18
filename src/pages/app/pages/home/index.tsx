@@ -85,6 +85,7 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
       const rolloverAccountTxReceipts = await rolloverAccount()
 
       rolloverAccountTxReceipts.forEach(el => {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         if (el.payload.function.includes('rollover')) {
           addTxHistoryItem({

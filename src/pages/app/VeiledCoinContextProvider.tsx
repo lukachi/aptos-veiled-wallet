@@ -429,7 +429,7 @@ const useSelectedAccountDecryptionKeyStatus = (
               isNormalized: false,
               isFrozen: false,
             }
-          } catch (e) {
+          } catch (error) {
             return {
               tokenAddress: el.address,
               pending: undefined,
@@ -538,6 +538,7 @@ const useSelectedAccountDecryptionKeyStatus = (
   }
 
   // FIXME: implement
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   const unfreezeAccount = async (): Promise<CommittedTransactionResponse> => {
     if (!decryptionKeyHex) throw new TypeError('Decryption key is not set')

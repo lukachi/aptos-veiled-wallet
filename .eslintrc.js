@@ -2,7 +2,7 @@ const path = require('path')
 
 /** @type {import("eslint").Linter.Config} */
 module.exports = {
-  extends: ['@react-native-community', 'plugin:prettier/recommended'],
+  extends: ['plugin:prettier/recommended'],
   ignorePatterns: [
     // Ignore dotfiles
     // ".*.js",
@@ -10,13 +10,20 @@ module.exports = {
     '*.js',
     'node_modules/',
     'dist/',
+    'ios/',
+    'android/',
   ],
   overrides: [
     // Configuration for TypeScript files
     {
       files: ['**/*.ts', '**/*.tsx', '**/*.js'],
-      plugins: ['@typescript-eslint', 'unused-imports', 'simple-import-sort'],
-      extends: ['@react-native-community', 'plugin:prettier/recommended'],
+      extends: [
+        '@react-native',
+        'plugin:@typescript-eslint/recommended',
+        'plugin:prettier/recommended',
+      ],
+      plugins: ['unused-imports', 'simple-import-sort'],
+      parser: '@typescript-eslint/parser',
       parserOptions: {
         project: './tsconfig.json',
       },
@@ -43,7 +50,7 @@ module.exports = {
           {
             argsIgnorePattern: '^_',
             varsIgnorePattern: '^_',
-            caughtErrorsIgnorePattern: '^_',
+            caughtErrorsIgnorePattern: '^_|error',
           },
         ],
 
@@ -55,6 +62,8 @@ module.exports = {
           { allowInterfaces: 'with-single-extends' },
         ],
         'react/jsx-curly-brace-presence': ['warn', 'never'],
+        '@typescript-eslint/no-require-imports': 'off',
+        '@typescript-eslint/no-namespace': 'off',
       },
     },
     // Configuration for translations files (i18next)
