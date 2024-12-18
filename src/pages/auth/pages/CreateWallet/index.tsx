@@ -111,8 +111,8 @@ export default function CreateWallet({ route }: Props) {
             {isImporting ? (
               <>
                 <ControlledUiTextField
-                  name={'privateKey'}
-                  placeholder={'Your private key'}
+                  name='privateKey'
+                  placeholder='Your private key'
                   control={control}
                   disabled={isFormDisabled}
                 />

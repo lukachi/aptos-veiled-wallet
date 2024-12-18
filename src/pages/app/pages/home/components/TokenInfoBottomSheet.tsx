@@ -36,9 +36,9 @@ export const TokenInfoBottomSheet = forwardRef<BottomSheetModal, Props>(
               {token.iconUri && (
                 <UiImage source={{ uri: token.iconUri }} className='size-[75] rounded-full' />
               )}
-              <TokenInfoItem label={'Name'} value={token.name} />
-              <TokenInfoItem label={'Symbol'} value={token.symbol} />
-              <TokenInfoItem label={'Decimals'} value={String(token.decimals)} />
+              <TokenInfoItem label='Name' value={token.name} />
+              <TokenInfoItem label='Symbol' value={token.symbol} />
+              <TokenInfoItem label='Decimals' value={String(token.decimals)} />
             </View>
           )}
         </BottomSheetView>

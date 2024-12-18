@@ -111,8 +111,8 @@ export default function VBCardsList({ isRefreshing, className, onRollover, ...re
                 >
                   <View className='flex size-[48] items-center justify-center rounded-full bg-componentPrimary'>
                     <UiIcon
-                      libIcon={'FontAwesome6'}
-                      name={'plus'}
+                      libIcon='FontAwesome6'
+                      name='plus'
                       size={24}
                       className='text-textPrimary'
                     />

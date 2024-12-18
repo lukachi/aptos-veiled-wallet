@@ -1,6 +1,7 @@
 import { ComponentProps } from 'react'
-import UiImage from '@/ui/UiImage'
+
 import { useAppTheme } from '@/theme'
+import UiImage from '@/ui/UiImage'
 
 type Props = ComponentProps<typeof UiImage>
 

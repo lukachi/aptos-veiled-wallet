@@ -116,12 +116,7 @@ export default function VBCard({
           {/*TODO: isNaN*/}
           {Boolean(+pendingAmount) && (
             <ActionCircleButton caption='rollover' className='ml-auto' onPress={onRollover}>
-              <UiIcon
-                libIcon={'AntDesign'}
-                name={'sync'}
-                size={16}
-                className={'text-textPrimary'}
-              />
+              <UiIcon libIcon='AntDesign' name='sync' size={16} className='text-textPrimary' />
             </ActionCircleButton>
           )}
         </View>

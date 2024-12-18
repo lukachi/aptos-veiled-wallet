@@ -227,7 +227,7 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
             onRefresh={tryRefresh}
             enabled={!isSubmitting}
             colors={['red']}
-            progressBackgroundColor={'yellow'}
+            progressBackgroundColor='yellow'
             size={10}
           />
         ),
@@ -254,31 +254,21 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
             disabled={isActionsDisabled}
             onPress={() => tokenInfoBottomSheet.present()}
           >
-            <UiIcon libIcon={'AntDesign'} name={'info'} size={32} className={'text-textPrimary'} />
+            <UiIcon libIcon='AntDesign' name='info' size={32} className='text-textPrimary' />
           </ActionCircleButton>
           <ActionCircleButton
             caption='Withdraw'
             disabled={isActionsDisabled}
             onPress={() => withdrawBottomSheet.present()}
           >
-            <UiIcon
-              libIcon={'AntDesign'}
-              name={'arrowup'}
-              size={32}
-              className={'text-textPrimary'}
-            />
+            <UiIcon libIcon='AntDesign' name='arrowup' size={32} className='text-textPrimary' />
           </ActionCircleButton>
           <ActionCircleButton
             caption='Transfer'
             disabled={isActionsDisabled}
             onPress={() => transferBottomSheet.present()}
           >
-            <UiIcon
-              libIcon={'AntDesign'}
-              name={'arrowright'}
-              size={32}
-              className={'text-textPrimary'}
-            />
+            <UiIcon libIcon='AntDesign' name='arrowright' size={32} className='text-textPrimary' />
           </ActionCircleButton>
         </View>
 
@@ -297,14 +287,14 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
 
               {!selectedAccountDecryptionKeyStatus.isRegistered ? (
                 <ActionCard
-                  title={'Register Balance'}
-                  desc={'Lorem ipsum dolor sit amet concestetur! Lorem ipsum dolor sit amet!'}
+                  title='Register Balance'
+                  desc='Lorem ipsum dolor sit amet concestetur! Lorem ipsum dolor sit amet!'
                   leadingContent={
                     <UiIcon
-                      libIcon={'FontAwesome'}
-                      name={'id-card'}
+                      libIcon='FontAwesome'
+                      name='id-card'
                       size={32}
-                      className={'self-center text-textPrimary'}
+                      className='self-center text-textPrimary'
                     />
                   }
                   onPress={tryRegister}
@@ -314,14 +304,14 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
                 <>
                   {selectedAccountDecryptionKeyStatus.isFrozen && (
                     <ActionCard
-                      title={'Unfreeze Balance'}
-                      desc={'Lorem ipsum dolor sit amet concestetur! Lorem ipsum dolor sit amet!'}
+                      title='Unfreeze Balance'
+                      desc='Lorem ipsum dolor sit amet concestetur! Lorem ipsum dolor sit amet!'
                       leadingContent={
                         <UiIcon
-                          libIcon={'FontAwesome'}
-                          name={'snowflake-o'}
+                          libIcon='FontAwesome'
+                          name='snowflake-o'
                           size={32}
-                          className={'self-center text-textPrimary'}
+                          className='self-center text-textPrimary'
                         />
                       }
                       onPress={tryUnfreeze}
@@ -331,14 +321,14 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
 
                   {!selectedAccountDecryptionKeyStatus.isNormalized && (
                     <ActionCard
-                      title={'Normalize Balance'}
-                      desc={'Lorem ipsum dolor sit amet concestetur! Lorem ipsum dolor sit amet!'}
+                      title='Normalize Balance'
+                      desc='Lorem ipsum dolor sit amet concestetur! Lorem ipsum dolor sit amet!'
                       leadingContent={
                         <UiIcon
-                          libIcon={'FontAwesome'}
-                          name={'exclamation-triangle'}
+                          libIcon='FontAwesome'
+                          name='exclamation-triangle'
                           size={32}
-                          className={'self-center text-textPrimary'}
+                          className='self-center text-textPrimary'
                         />
                       }
                       onPress={tryNormalize}
@@ -347,14 +337,14 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
                   )}
 
                   <ActionCard
-                    title={'Test Mint'}
-                    desc={'Mint 10 test tokens'}
+                    title='Test Mint'
+                    desc='Mint 10 test tokens'
                     leadingContent={
                       <UiIcon
-                        libIcon={'MaterialCommunityIcons'}
-                        name={'hand-coin'}
+                        libIcon='MaterialCommunityIcons'
+                        name='hand-coin'
                         size={32}
-                        className={'self-center text-textPrimary'}
+                        className='self-center text-textPrimary'
                       />
                     }
                     onPress={tryTestMint}
@@ -374,10 +364,10 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
               </View>
             ) : (
               <UiIcon
-                libIcon={'FontAwesome'}
-                name={'folder-open'}
+                libIcon='FontAwesome'
+                name='folder-open'
                 size={128}
-                className={'my-auto self-center text-componentHovered'}
+                className='my-auto self-center text-componentHovered'
               />
             )}
           </View>

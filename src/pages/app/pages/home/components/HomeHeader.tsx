@@ -69,12 +69,7 @@ export default function HomeHeader({ className, ...rest }: ViewProps) {
             {selectedAccount.accountAddress.toString()}
           </Text>
 
-          <UiIcon
-            libIcon={'FontAwesome'}
-            name={'caret-down'}
-            size={24}
-            className={'text-textPrimary'}
-          />
+          <UiIcon libIcon='FontAwesome' name='caret-down' size={24} className='text-textPrimary' />
         </View>
       </TouchableOpacity>
 
@@ -199,7 +194,7 @@ function AccountListItem({
                 className='flex min-w-[60] items-center justify-center self-stretch bg-errorMain'
                 onPress={onRemove}
               >
-                <UiIcon libIcon={'FontAwesome'} name='trash' size={24} color={palette.baseWhite} />
+                <UiIcon libIcon='FontAwesome' name='trash' size={24} color={palette.baseWhite} />
               </TouchableOpacity>
             )}
             <TouchableOpacity
@@ -207,10 +202,10 @@ function AccountListItem({
               onPress={() => addrCopyManager.copy(accountAddress)}
             >
               <UiIcon
-                libIcon={'AntDesign'}
+                libIcon='AntDesign'
                 name={addrCopyManager.isCopied ? 'check' : 'copy1'}
                 size={18}
-                className={'text-baseWhite'}
+                className='text-baseWhite'
               />
             </TouchableOpacity>
             <TouchableOpacity
@@ -218,10 +213,10 @@ function AccountListItem({
               onPress={() => pkCopyManager.copy(privateKeyHex)}
             >
               <UiIcon
-                libIcon={'AntDesign'}
+                libIcon='AntDesign'
                 name={pkCopyManager.isCopied ? 'check' : 'key'}
                 size={18}
-                className={'text-baseWhite'}
+                className='text-baseWhite'
               />
             </TouchableOpacity>
           </View>
@@ -238,10 +233,10 @@ function AccountListItem({
       >
         {isActive && (
           <UiIcon
-            libIcon={'FontAwesome'}
+            libIcon='FontAwesome'
             name='check-circle'
             size={20}
-            className={'text-textPrimary'}
+            className='text-textPrimary'
           />
         )}
 
@@ -315,7 +310,7 @@ const AddNewAccountBottomSheet = forwardRef<BottomSheetModal, AddNewAccountBotto
 
           <ControlledUiTextField
             control={control}
-            name={'privateKeyHex'}
+            name='privateKeyHex'
             label='Private Key'
             placeholder='Enter private key'
             disabled={isFormDisabled}
@@ -434,7 +429,7 @@ const TransferNativeBottomSheet = forwardRef<BottomSheetModal, TransferNativeBot
 
           <ControlledUiTextField
             control={control}
-            name={'receiverAccountAddress'}
+            name='receiverAccountAddress'
             label='Account address'
             placeholder='Enter account address'
             disabled={isFormDisabled}
@@ -442,7 +437,7 @@ const TransferNativeBottomSheet = forwardRef<BottomSheetModal, TransferNativeBot
 
           <ControlledUiTextField
             control={control}
-            name={'amount'}
+            name='amount'
             label='amount'
             placeholder='Enter amount'
             keyboardType='numbers-and-punctuation'

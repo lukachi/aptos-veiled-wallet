@@ -152,7 +152,7 @@ export const TransferBottomSheet = forwardRef<TransferBottomSheetRef, Props>(
           <View className='flex gap-4'>
             <ControlledUiTextField
               control={control}
-              name={'receiverEncryptionKey'}
+              name='receiverEncryptionKey'
               label='Receiver'
               placeholder='Enter encryption key'
               disabled={isFormDisabled}
@@ -160,7 +160,7 @@ export const TransferBottomSheet = forwardRef<TransferBottomSheetRef, Props>(
 
             <ControlledUiTextField
               control={control}
-              name={'amount'}
+              name='amount'
               label='Amount'
               placeholder='Enter amount'
               keyboardType='numeric'
@@ -238,7 +238,7 @@ const AuditorsList = ({
                       onPress={() => removeAuditor(index)}
                     >
                       <UiIcon
-                        libIcon={'FontAwesome'}
+                        libIcon='FontAwesome'
                         name='trash'
                         size={24}
                         className='text-baseWhite'

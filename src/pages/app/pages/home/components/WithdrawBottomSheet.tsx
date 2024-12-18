@@ -126,7 +126,7 @@ export const WithdrawBottomSheet = forwardRef<WithdrawBottomSheetRef, Props>(
           <View className='flex gap-4'>
             <ControlledUiTextField
               control={control}
-              name={'amount'}
+              name='amount'
               label='Amount'
               placeholder='Enter amount'
               keyboardType='numeric'

@@ -25,54 +25,42 @@ export default function TxItem({ createdAt, txType, txHash, ...rest }: Props) {
 
   const icon = {
     transfer: (
-      <UiIcon
-        libIcon={'AntDesign'}
-        name={'arrowright'}
-        size={24}
-        className={cn('text-textPrimary')}
-      />
+      <UiIcon libIcon='AntDesign' name='arrowright' size={24} className={cn('text-textPrimary')} />
     ),
     ['transfer-native']: (
       <UiIcon
-        libIcon={'FontAwesome6'}
-        name={'angle-right'}
+        libIcon='FontAwesome6'
+        name='angle-right'
         size={24}
         className={cn('text-textPrimary')}
       />
     ),
     deposit: (
-      <UiIcon
-        libIcon={'AntDesign'}
-        name={'arrowdown'}
-        size={24}
-        className={cn('text-textPrimary')}
-      />
+      <UiIcon libIcon='AntDesign' name='arrowdown' size={24} className={cn('text-textPrimary')} />
     ),
     withdraw: (
-      <UiIcon libIcon={'AntDesign'} name={'arrowup'} size={24} className={cn('text-textPrimary')} />
+      <UiIcon libIcon='AntDesign' name='arrowup' size={24} className={cn('text-textPrimary')} />
     ),
     rollover: (
-      <UiIcon libIcon={'AntDesign'} name={'sync'} size={24} className={cn('text-textPrimary')} />
+      <UiIcon libIcon='AntDesign' name='sync' size={24} className={cn('text-textPrimary')} />
     ),
     'key-rotation': (
-      <UiIcon libIcon={'AntDesign'} name={'key'} size={24} className={cn('text-textPrimary')} />
+      <UiIcon libIcon='AntDesign' name='key' size={24} className={cn('text-textPrimary')} />
     ),
-    freeze: (
-      <UiIcon libIcon={'AntDesign'} name={'lock'} size={24} className={cn('text-textPrimary')} />
-    ),
+    freeze: <UiIcon libIcon='AntDesign' name='lock' size={24} className={cn('text-textPrimary')} />,
     unfreeze: (
-      <UiIcon libIcon={'AntDesign'} name={'unlock'} size={24} className={cn('text-textPrimary')} />
+      <UiIcon libIcon='AntDesign' name='unlock' size={24} className={cn('text-textPrimary')} />
     ),
     register: (
-      <UiIcon libIcon={'AntDesign'} name={'idcard'} size={24} className={cn('text-textPrimary')} />
+      <UiIcon libIcon='AntDesign' name='idcard' size={24} className={cn('text-textPrimary')} />
     ),
     normalize: (
-      <UiIcon libIcon={'AntDesign'} name={'edit'} size={24} className={cn('text-textPrimary')} />
+      <UiIcon libIcon='AntDesign' name='edit' size={24} className={cn('text-textPrimary')} />
     ),
     mint: (
       <UiIcon
-        libIcon={'MaterialCommunityIcons'}
-        name={'hand-coin'}
+        libIcon='MaterialCommunityIcons'
+        name='hand-coin'
         size={24}
         className={cn('text-textPrimary')}
       />
@@ -93,7 +81,7 @@ export default function TxItem({ createdAt, txType, txHash, ...rest }: Props) {
 
       <TouchableOpacity className='ml-auto p-4' onPress={() => copy(txHash)}>
         <UiIcon
-          libIcon={'AntDesign'}
+          libIcon='AntDesign'
           name={isCopied ? 'check' : 'copy1'}
           size={18}
           className='text-textPrimary'

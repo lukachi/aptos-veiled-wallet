@@ -28,10 +28,10 @@ function AppTabs({}: AppStackScreenProps<'Tabs'>) {
           left: 0,
         },
       }}
-      initialRouteName={'Home'}
+      initialRouteName='Home'
     >
       <Tab.Screen
-        name={'Home'}
+        name='Home'
         component={HomeScreen}
         options={{
           headerShown: false,
@@ -41,7 +41,7 @@ function AppTabs({}: AppStackScreenProps<'Tabs'>) {
         }}
       />
       <Tab.Screen
-        name={'Profile'}
+        name='Profile'
         component={ProfileScreen}
         options={{
           headerShown: false,
@@ -59,7 +59,7 @@ export default function App({}: RootStackScreenProps<'App'>) {
     <VeiledCoinContextProvider>
       <Stack.Navigator>
         <Stack.Screen
-          name={'Tabs'}
+          name='Tabs'
           component={AppTabs}
           options={{
             headerShown: false,
