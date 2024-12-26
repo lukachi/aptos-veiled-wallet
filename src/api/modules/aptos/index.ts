@@ -6,20 +6,20 @@ import {
   type CommittedTransactionResponse,
   Ed25519PrivateKey,
   type InputGenerateTransactionPayloadData,
-  KangarooRistretto,
   Network,
   NetworkToNetworkName,
   RangeProofExecutor,
-  TableMap,
   TransactionWorkerEventsEnum,
   TwistedEd25519PrivateKey,
   TwistedEd25519PublicKey,
+  TwistedElGamal,
   type TwistedElGamalCiphertext,
   VeiledAmount,
   VeiledCoin,
   VeiledWithdraw,
 } from '@aptos-labs/ts-sdk'
 import { BN } from '@distributedlab/tools'
+import { initializeKangaroo, solveDLP } from '@lukachi/rn-pollard-kangaroo'
 import { genRangeProof, verifyRangeProof } from '@lukachi/rn-range-proof'
 
 import { apiClient } from '@/api/client'
@@ -288,7 +288,7 @@ export const normalizeVeiledBalance = async (
   const normalizeTx = await aptos.veiledCoin.normalizeUserBalance({
     tokenAddress,
     decryptionKey: new TwistedEd25519PrivateKey(decryptionKeyHex),
-    unnormilizedEncryptedBalance: encryptedPendingBalance,
+    unnormalizedEncryptedBalance: encryptedPendingBalance,
     balanceAmount: amount,
 
     sender: account.accountAddress,
@@ -442,46 +442,65 @@ export const sendApt = async (
 
 export const setTableMap = async () => {
   const [table16, table32, table48] = await Promise.all([
-    loadTableMap(
+    loadTableMapJSON(
       'https://raw.githubusercontent.com/distributed-lab/pollard-kangaroo-plus-testing/refs/heads/tables/output_8_8000_16_64.json',
     ),
-    loadTableMap(
+    loadTableMapJSON(
       'https://raw.githubusercontent.com/distributed-lab/pollard-kangaroo-plus-testing/refs/heads/tables/output_2048_4000_32_128.json',
     ),
-    loadTableMap(
+    loadTableMapJSON(
       'https://raw.githubusercontent.com/distributed-lab/pollard-kangaroo-plus-testing/refs/heads/tables/output_65536_40000_48_128.json',
     ),
   ])
 
-  KangarooRistretto.setTableWithParams({
-    table: table16,
-    n: 8_000,
-    w: 8n,
-    r: 64n,
-    secretSize: 16,
+  const mapsJsonString = JSON.stringify({
+    16: {
+      n: 8000,
+      w: 8,
+      r: 64,
+      bits: 16,
+      table: table16,
+      max_attempts: 20,
+    },
+    32: {
+      n: 4000,
+      w: 2048,
+      r: 128,
+      bits: 32,
+      table: table32,
+      max_attempts: 40,
+    },
+    48: {
+      n: 40_000,
+      w: 65536,
+      r: 128,
+      bits: 48,
+      table: table48,
+      max_attempts: 1000,
+    },
   })
-  KangarooRistretto.setTableWithParams({
-    table: table32,
-    n: 4_000,
-    w: 2048n,
-    r: 128n,
-    secretSize: 32,
-  })
-  KangarooRistretto.setTableWithParams({
-    table: table48,
-    n: 40_000,
-    w: 65536n,
-    r: 128n,
-    secretSize: 48,
-  })
+
+  await initializeKangaroo(mapsJsonString)
+
+  TwistedElGamal.setDecryptionFn(async pk => BigInt(await solveDLP(pk)))
 }
 
-async function loadTableMap(url: string) {
+type TableMapJSON = {
+  file_name: string
+  s: string[]
+  slog: string[]
+  table: {
+    point: string
+    value: string
+  }[]
+}
+
+export async function loadTableMapJSON(url: string): Promise<TableMapJSON> {
   const tableMapResponse = await fetch(url)
 
   if (!tableMapResponse.ok) {
     throw new TypeError('Failed to load table map')
   }
 
-  return TableMap.createFromJson(JSON.stringify(await tableMapResponse.json()))
+  return tableMapResponse.json()
 }

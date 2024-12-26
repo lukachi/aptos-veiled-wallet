@@ -48,12 +48,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aptos-labs/aptos-cli@npm:^0.2.0":
-  version: 0.2.0
-  resolution: "@aptos-labs/aptos-cli@npm:0.2.0"
+"@aptos-labs/aptos-cli@npm:^1.0.2":
+  version: 1.0.2
+  resolution: "@aptos-labs/aptos-cli@npm:1.0.2"
+  dependencies:
+    commander: "npm:^12.1.0"
   bin:
-    aptos: bin/aptos
-  checksum: 10/c6105a2835998e4525be4f0dd279263fe9a012d606499fd5b678cfa9ef9ed9c50bcdae272e0c0a97c29485da00c0d25d29009d6a1415dff0b2dc39b9fa654fe9
+    aptos: dist/aptos.js
+  checksum: 10/83b7e8aa131d26aeeb977cb22b8260259023219dd1c474757bbf4c736f20befa44653f6714d2cc4219877bec6e71ad83d4ec7191b294b34c9d772a54bb928679
   languageName: node
   linkType: hard
 
@@ -67,13 +69,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aptos-labs/ts-sdk@file:../../aptos-ts-sdk/aptos-labs-ts-sdk-1.27.1.tgz::locator=aptos-veiled-wallet%40workspace%3A.":
-  version: 1.27.1
-  resolution: "@aptos-labs/ts-sdk@file:../../aptos-ts-sdk/aptos-labs-ts-sdk-1.27.1.tgz#../../aptos-ts-sdk/aptos-labs-ts-sdk-1.27.1.tgz::hash=8e8c20&locator=aptos-veiled-wallet%40workspace%3A."
+"@aptos-labs/ts-sdk@file:../../aptos-ts-sdk/aptos-labs-ts-sdk-1.33.1.tgz::locator=aptos-veiled-wallet%40workspace%3A.":
+  version: 1.33.1
+  resolution: "@aptos-labs/ts-sdk@file:../../aptos-ts-sdk/aptos-labs-ts-sdk-1.33.1.tgz#../../aptos-ts-sdk/aptos-labs-ts-sdk-1.33.1.tgz::hash=2dee68&locator=aptos-veiled-wallet%40workspace%3A."
   dependencies:
-    "@aptos-labs/aptos-cli": "npm:^0.2.0"
+    "@aptos-labs/aptos-cli": "npm:^1.0.2"
     "@aptos-labs/aptos-client": "npm:^0.1.1"
-    "@distributedlab/aptos-wasm-bindings": "npm:^0.2.4"
+    "@distributedlab/aptos-wasm-bindings": "npm:0.3.6"
     "@noble/curves": "npm:^1.4.0"
     "@noble/hashes": "npm:^1.4.0"
     "@scure/bip32": "npm:^1.4.0"
@@ -83,7 +85,7 @@ __metadata:
     js-base64: "npm:^3.7.7"
     jwt-decode: "npm:^4.0.0"
     poseidon-lite: "npm:^0.2.0"
-  checksum: 10/f58e1e3876d567f5638e6f4a3a25decc6a41b6c610dee98e23219a51a5475d3e14359b09b25ff04bd08059f95e518133e64e57a5642171ebd96404dc5a223e91
+  checksum: 10/4ee519fa8270103b61623a70b081f50eb31dfded8c96add414d11d96887ef947f00c18d500d60d0009b7c11b0250f9a325a83a64f7fb2f89d118d472f1355515
   languageName: node
   linkType: hard
 
@@ -1807,10 +1809,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@distributedlab/aptos-wasm-bindings@npm:^0.2.4":
-  version: 0.2.4
-  resolution: "@distributedlab/aptos-wasm-bindings@npm:0.2.4"
-  checksum: 10/7e2a3e7f3a195bc6a80967a17832b2eb1500aa6b3321b51182dc51465e8bbb4bc3f70b47c4a2f5f448b2d482ba82010939f669afca2a22a22217efc149b16424
+"@distributedlab/aptos-wasm-bindings@npm:0.3.6":
+  version: 0.3.6
+  resolution: "@distributedlab/aptos-wasm-bindings@npm:0.3.6"
+  checksum: 10/1e4033338de4b4877f2c2da61c3ea7af3de47798adc5d705c7d6f02beba8c9c4d763ccc212c034197a9c72db97ddb9f1ba88cdb0097ca4ffb36bfecdbb230e47
   languageName: node
   linkType: hard
 
@@ -3344,6 +3346,17 @@ __metadata:
     "@jridgewell/resolve-uri": "npm:^3.1.0"
     "@jridgewell/sourcemap-codec": "npm:^1.4.14"
   checksum: 10/dced32160a44b49d531b80a4a2159dceab6b3ddf0c8e95a0deae4b0e894b172defa63d5ac52a19c2068e1fe7d31ea4ba931fbeec103233ecb4208953967120fc
+  languageName: node
+  linkType: hard
+
+"@lukachi/rn-pollard-kangaroo@npm:0.1.0":
+  version: 0.1.0
+  resolution: "@lukachi/rn-pollard-kangaroo@npm:0.1.0"
+  peerDependencies:
+    expo: "*"
+    react: "*"
+    react-native: "*"
+  checksum: 10/293e3488f4678b986ad2f3da1fbc3bbf693873686b96fea7e94b28b015b989b9572df1f2b3e1763c05f8168c22a4079305dcb9870eec35f35259686489bce654
   languageName: node
   linkType: hard
 
@@ -5641,7 +5654,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "aptos-veiled-wallet@workspace:."
   dependencies:
-    "@aptos-labs/ts-sdk": ../../aptos-ts-sdk/aptos-labs-ts-sdk-1.27.1.tgz
+    "@aptos-labs/ts-sdk": ../../aptos-ts-sdk/aptos-labs-ts-sdk-1.33.1.tgz
     "@babel/core": "npm:^7.24.6"
     "@dev-plugins/react-navigation": "npm:^0.0.6"
     "@dev-plugins/react-query": "npm:^0.0.6"
@@ -5652,6 +5665,7 @@ __metadata:
     "@expo/metro-runtime": "npm:~4.0.0"
     "@gorhom/bottom-sheet": "npm:^5.0.6"
     "@hookform/resolvers": "npm:^3.9.0"
+    "@lukachi/rn-pollard-kangaroo": "npm:0.1.0"
     "@lukachi/rn-range-proof": "npm:0.1.1"
     "@react-native-community/hooks": "npm:^3.0.0"
     "@react-native/eslint-config": "npm:^0.76.5"
@@ -7352,7 +7366,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"commander@npm:^12.0.0":
+"commander@npm:^12.0.0, commander@npm:^12.1.0":
   version: 12.1.0
   resolution: "commander@npm:12.1.0"
   checksum: 10/cdaeb672d979816853a4eed7f1310a9319e8b976172485c2a6b437ed0db0a389a44cfb222bfbde772781efa9f215bdd1b936f80d6b249485b465c6cb906e1f93
