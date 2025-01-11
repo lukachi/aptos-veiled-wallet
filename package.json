@@ -48,7 +48,7 @@
     "@distributedlab/tools": "^1.0.0-rc.16",
     "@gorhom/bottom-sheet": "^5.0.6",
     "@hookform/resolvers": "^3.9.0",
-    "@lukachi/rn-pollard-kangaroo": "0.1.0",
+    "@lukachi/rn-pollard-kangaroo": "0.2.1",
     "@lukachi/rn-range-proof": "0.1.1",
     "@react-native-community/hooks": "^3.0.0",
     "@react-native/js-polyfills": "^0.74.85",

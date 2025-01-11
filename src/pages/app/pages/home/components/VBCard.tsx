@@ -7,6 +7,7 @@ import { ActionCircleButton } from '@/pages/app/pages/home/components/index'
 import type { TokenBaseInfo } from '@/store'
 import { cn } from '@/theme'
 import { UiCard, UiIcon } from '@/ui'
+import UiSkeleton from '@/ui/UiSkeleton'
 
 type Props = {
   token: TokenBaseInfo
@@ -105,12 +106,23 @@ export default function VBCard({
             <Text className='text-textSecondary typography-caption1'>
               Pending / <Text className='text-textPrimary'>Actual</Text>
             </Text>
-            <Text className='text-textPrimary typography-subtitle1'>
-              <Text className='text-textSecondary'>
-                {formatBalance(pendingAmount, token.decimals)}
-              </Text>{' '}
-              / {formatBalance(actualAmount, token.decimals)}
-            </Text>
+            {isLoading ? (
+              <View className='flex flex-row items-center gap-2'>
+                <UiSkeleton className='h-[24] w-[75] rounded-full bg-componentPrimary' />
+                <Text className='text-textSecondary'>{' / '}</Text>
+                <UiSkeleton className='h-[24] w-[75] rounded-full bg-componentPrimary' />
+              </View>
+            ) : (
+              <>
+                <Text className='text-textPrimary typography-subtitle1'>
+                  <Text className='text-textSecondary'>
+                    {formatBalance(pendingAmount, token.decimals)}
+                  </Text>
+                  {' / '}
+                  {formatBalance(actualAmount, token.decimals)}
+                </Text>
+              </>
+            )}
           </View>
 
           {/*TODO: isNaN*/}
