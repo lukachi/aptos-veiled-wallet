@@ -381,12 +381,21 @@ export const getVeiledBalances = async (
     tokenAddress,
   })
 
-  const veiledAmountPending = await VeiledAmount.fromEncrypted(pending, decryptionKey)
-  const veiledAmountActual = await VeiledAmount.fromEncrypted(actual, decryptionKey)
+  try {
+    const [veiledAmountPending, veiledAmountActual] = await Promise.all([
+      VeiledAmount.fromEncrypted(pending, decryptionKey),
+      VeiledAmount.fromEncrypted(actual, decryptionKey),
+    ])
 
-  return {
-    pending: veiledAmountPending,
-    actual: veiledAmountActual,
+    return {
+      pending: veiledAmountPending,
+      actual: veiledAmountActual,
+    }
+  } catch (error) {
+    return {
+      pending: VeiledAmount.fromAmount(0n),
+      actual: VeiledAmount.fromAmount(0n),
+    }
   }
 }
 
