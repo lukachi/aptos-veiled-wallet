@@ -9,7 +9,8 @@ const withCustomRootBuildGradle = config => {
     allprojects {
         repositories {
             flatDir {
-                dirs project(':range-proof').projectDir.absolutePath + '/libs'
+                dirs project(':lukachi-rn-range-proof').projectDir.absolutePath + '/libs'
+                dirs project(':lukachi-rn-pollard-kangaroo').projectDir.absolutePath + '/libs'
             }
         }
     }
