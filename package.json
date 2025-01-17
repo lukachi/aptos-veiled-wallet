@@ -42,12 +42,12 @@
     "preset": "jest-expo"
   },
   "dependencies": {
-    "@aptos-labs/ts-sdk": "../../aptos-ts-sdk/aptos-labs-ts-sdk-1.33.1.tgz",
     "@dev-plugins/react-navigation": "^0.0.6",
     "@dev-plugins/react-query": "^0.0.6",
     "@distributedlab/tools": "^1.0.0-rc.16",
     "@gorhom/bottom-sheet": "^5.0.6",
     "@hookform/resolvers": "^3.9.0",
+    "@lukachi/aptos-labs-ts-sdk": "^1.33.1",
     "@lukachi/rn-pollard-kangaroo": "0.2.1",
     "@lukachi/rn-range-proof": "0.1.1",
     "@react-native-community/hooks": "^3.0.0",

@@ -1,3 +1,4 @@
+import { BN } from '@distributedlab/tools'
 import {
   Account,
   type AnyRawTransaction,
@@ -17,8 +18,7 @@ import {
   VeiledAmount,
   VeiledCoin,
   VeiledWithdraw,
-} from '@aptos-labs/ts-sdk'
-import { BN } from '@distributedlab/tools'
+} from '@lukachi/aptos-labs-ts-sdk'
 import { initializeKangaroo, solveDLP } from '@lukachi/rn-pollard-kangaroo'
 import { genRangeProof, verifyRangeProof } from '@lukachi/rn-range-proof'
 

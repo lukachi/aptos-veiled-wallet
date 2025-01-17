@@ -1,5 +1,9 @@
-import type { CommittedTransactionResponse, Ed25519Account, VeiledAmount } from '@aptos-labs/ts-sdk'
-import { TwistedEd25519PrivateKey } from '@aptos-labs/ts-sdk'
+import type {
+  CommittedTransactionResponse,
+  Ed25519Account,
+  VeiledAmount,
+} from '@lukachi/aptos-labs-ts-sdk'
+import { TwistedEd25519PrivateKey } from '@lukachi/aptos-labs-ts-sdk'
 import type { PropsWithChildren } from 'react'
 import { useCallback } from 'react'
 import { createContext, useContext, useMemo } from 'react'
