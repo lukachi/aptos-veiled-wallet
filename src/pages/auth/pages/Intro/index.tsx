@@ -7,7 +7,6 @@ import { useSharedValue } from 'react-native-reanimated'
 import Carousel, { type ICarouselInstance, Pagination } from 'react-native-reanimated-carousel'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import { translate } from '@/core'
 import { sleep } from '@/helpers'
 import { type AuthStackScreenProps } from '@/route-types'
 import { cn, useAppPaddings, useAppTheme } from '@/theme'
@@ -37,10 +36,10 @@ export default function Intro({}: AuthStackScreenProps<'Intro'>) {
       {
         title: (
           <Text className='text-center text-textPrimary typography-h4'>
-            Step 1 <Text className='text-center text-primaryMain'>accent</Text>
+            Veiled <Text className='text-center text-primaryMain'>Coin</Text>
           </Text>
         ),
-        subtitle: translate('auth.intro.step-1.subtitle'),
+        subtitle: 'Create wallet',
         media: (
           <View className='size-[300]'>
             <LottieView
@@ -53,8 +52,12 @@ export default function Intro({}: AuthStackScreenProps<'Intro'>) {
         ),
       },
       {
-        title: translate('auth.intro.step-2.title'),
-        subtitle: translate('auth.intro.step-2.subtitle'),
+        title: (
+          <Text className='text-center text-textPrimary typography-h4'>
+            Hide <Text className='text-center text-primaryMain'>transfers</Text>
+          </Text>
+        ),
+        subtitle: '',
         media: (
           <View className='size-[300]'>
             <LottieView

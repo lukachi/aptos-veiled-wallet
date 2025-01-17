@@ -229,7 +229,7 @@ export default function HomeScreen({}: AppTabScreenProps<'Home'>) {
             enabled={!isSubmitting}
             colors={['red']}
             progressBackgroundColor='yellow'
-            size={10}
+            size={5}
           />
         ),
       }}
